@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-07-01T19:19:14.122Z"
-last_activity: 2026-07-01 — Roadmap created, 4 vertical MVP phases mapped to all 16 v1 requirements
+stopped_at: Phase 01 Plan 01 paused at Task 4 checkpoint (human-verify, blocking-human) -- Tasks 1-3 committed, awaiting OAuth+iframe verification in real Onshape docs
+last_updated: "2026-07-01T19:40:41.196Z"
+last_activity: 2026-07-01 -- Phase 01 execution started
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01)
 
 **Core value:** Surface FRC rule violations in a team's CAD design before in-person inspection, so problems are caught and fixed at design time.
-**Current focus:** Phase 1 - Connected Foundation & First Check
+**Current focus:** Phase 01 — connected-foundation-first-check
 
 ## Current Position
 
-Phase: 1 of 4 (Connected Foundation & First Check)
-Plan: 0 of TBD in current phase
-Status: Ready to execute
-Last activity: 2026-07-01 — Roadmap created, 4 vertical MVP phases mapped to all 16 v1 requirements
+Phase: 01 (connected-foundation-first-check) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 01
+Last activity: 2026-07-01 -- Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -73,6 +73,7 @@ None yet.
 - Phase 2 (research flag): Assembly-level mass-properties JSON response shape (fields, units, null-vs-omitted semantics for unset-material parts) is only forum-verified — confirm against a live test document early in Phase 2 planning.
 - Phase 3 (research flag): Floor-plane determination and the minor-protrusion (<=1/4 in) exception for frame perimeter have no clean API answer — needs experimentation against real public team CAD during Phase 3 planning/execution.
 - Phase 3: Exact 2026 Game Manual rule numbers/text (R101, R103, R104, R107, R408) were not directly extracted from the official PDF during research (binary parsing failed) — re-verify exact R-numbers, titles, and limit values against the live 2026 Game Manual before finalizing Phase 1's versioned config (CONF-01/CONF-02) and again before Phase 3.
+- Phase 1 Plan 01 paused at Task 4 (checkpoint:human-verify, gate=blocking-human): OAuth + iframe embedding must be verified by a human in real Onshape documents (Chrome + Safari) before Plan 01 completes.
 
 ## Deferred Items
 
@@ -88,6 +89,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T18:51:31.036Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-connected-foundation-first-check/01-CONTEXT.md
+Last session: 2026-07-01T19:40:41.192Z
+Stopped at: Phase 01 Plan 01 paused at Task 4 checkpoint (human-verify, blocking-human) -- Tasks 1-3 committed, awaiting OAuth+iframe verification in real Onshape docs
+Resume file: .planning/phases/01-connected-foundation-first-check/01-01-PLAN.md
