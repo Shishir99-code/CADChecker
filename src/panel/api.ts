@@ -20,10 +20,10 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
 }
 
 /**
- * Structured check-run report shape (placeholder signature only).
- * Plan 03 implements the real request/response wiring against
- * POST /api/check; this phase (Task 3) exports only the contract so the
- * panel shell can reference it without runtime check logic existing yet.
+ * Structured check-run report shape returned by POST /api/check. Mirrors
+ * src/server/checks/engine.ts's Verdict shape -- the panel renders whatever
+ * JSON the backend returns and duplicates no business logic client-side
+ * (RESEARCH Architectural Responsibility Map).
  */
 export interface CheckReportVerdict {
   rule: string;
@@ -34,16 +34,60 @@ export interface CheckReportVerdict {
   pass: boolean;
 }
 
+export interface CheckReportContext {
+  documentId: string;
+  workspaceId: string;
+  elementId: string;
+}
+
 export interface CheckReport {
+  measuredContext: CheckReportContext;
   verdicts: CheckReportVerdict[];
-  generatedAt: string;
 }
 
 /**
- * Placeholder signature for the future "check now" call. No implementation
- * yet -- Plan 03 wires this to POST /api/check, which re-derives the live
- * document/workspace/element context at click time (RESEARCH Pattern 1).
+ * A distinct signal (D-05): the session's access token could not be
+ * refreshed. The panel MUST render this as a dedicated Reconnect view, never
+ * as a row inside the report table.
  */
-export function runCheck(): Promise<CheckReport> {
-  return apiFetch("/api/check", { method: "POST" }).then((res) => res.json() as Promise<CheckReport>);
+export interface CheckReconnectSignal {
+  needsReconnect: true;
+}
+
+export type CheckResult = CheckReport | CheckReconnectSignal;
+
+export function isReconnectSignal(result: CheckResult): result is CheckReconnectSignal {
+  return "needsReconnect" in result && result.needsReconnect === true;
+}
+
+/**
+ * Thrown when the backend responds 401 -- the panel has no authenticated
+ * session and should show the Connect action (Plan 01), not the Reconnect
+ * view (which is specifically for a *failed refresh*, D-05) nor a report.
+ */
+export class AuthRequiredError extends Error {
+  constructor() {
+    super("Not authenticated");
+    this.name = "AuthRequiredError";
+  }
+}
+
+/**
+ * Runs "check now": POSTs the panel's own document/workspace identity to the
+ * backend, which re-derives the live target element at request time
+ * (CONN-02) -- the panel never selects or caches which element is checked.
+ * The OAuth token is never referenced here; apiFetch's credentials:"include"
+ * carries the httpOnly session cookie instead (threat T-01-10).
+ */
+export async function runCheck(documentId: string, workspaceId: string): Promise<CheckResult> {
+  const res = await apiFetch("/api/check", {
+    method: "POST",
+    body: JSON.stringify({ documentId, workspaceId }),
+  });
+
+  if (res.status === 401) {
+    throw new AuthRequiredError();
+  }
+
+  return (await res.json()) as CheckResult;
 }

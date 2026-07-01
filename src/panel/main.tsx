@@ -1,10 +1,26 @@
-import { StrictMode, useEffect } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { startHandshake } from "./postMessage/handshake.ts";
+import { startHandshake, type OwnTabIdentity } from "./postMessage/handshake.ts";
+import { runCheck, isReconnectSignal, AuthRequiredError, type CheckReport } from "./api.ts";
+import { PlumbingBanner } from "./components/PlumbingBanner.tsx";
+import { ReportTable } from "./components/ReportTable.tsx";
+import { ReconnectState } from "./components/ReconnectState.tsx";
+
+type CheckUiState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "report"; report: CheckReport }
+  | { status: "reconnect" }
+  | { status: "auth-required" }
+  | { status: "error"; message: string };
 
 function App() {
+  const [identity, setIdentity] = useState<OwnTabIdentity | null>(null);
+  const [checkState, setCheckState] = useState<CheckUiState>({ status: "idle" });
+
   useEffect(() => {
-    const { teardown } = startHandshake();
+    const { identity: ownIdentity, teardown } = startHandshake();
+    setIdentity(ownIdentity);
     return teardown;
   }, []);
 
@@ -15,6 +31,34 @@ function App() {
     window.top!.location.href = "/auth/onshape";
   }
 
+  async function handleCheckNow() {
+    if (!identity?.documentId || !identity.workspaceId) {
+      setCheckState({ status: "error", message: "Missing document context; reopen the panel." });
+      return;
+    }
+
+    setCheckState({ status: "loading" });
+    try {
+      // The panel supplies its own document/workspace identity; the backend
+      // re-derives which ELEMENT to check at THIS click (CONN-02) -- it is
+      // never selected or cached client-side.
+      const result = await runCheck(identity.documentId, identity.workspaceId);
+      if (isReconnectSignal(result)) {
+        // D-05: rendered as a dedicated state, never as a row inside the
+        // report table.
+        setCheckState({ status: "reconnect" });
+      } else {
+        setCheckState({ status: "report", report: result });
+      }
+    } catch (err) {
+      if (err instanceof AuthRequiredError) {
+        setCheckState({ status: "auth-required" });
+      } else {
+        setCheckState({ status: "error", message: "Check failed unexpectedly. Try again." });
+      }
+    }
+  }
+
   return (
     <main>
       <h1>CADChecker</h1>
@@ -22,10 +66,28 @@ function App() {
       <button type="button" onClick={handleConnect}>
         Connect Onshape
       </button>
-      {/* Placeholder region -- Plan 03 mounts the report table (pass/fail
-          rows + "plumbing proof" banner) and the dedicated Reconnect state
-          (D-05) here. */}
-      <section id="report-placeholder" />
+      <button type="button" onClick={handleCheckNow} disabled={checkState.status === "loading"}>
+        Check now
+      </button>
+
+      <section id="report-placeholder">
+        {checkState.status === "loading" && <p>Checking...</p>}
+
+        {checkState.status === "reconnect" && <ReconnectState />}
+
+        {checkState.status === "auth-required" && (
+          <p>Not connected yet — click "Connect Onshape" above.</p>
+        )}
+
+        {checkState.status === "error" && <p role="alert">{checkState.message}</p>}
+
+        {checkState.status === "report" && (
+          <>
+            <PlumbingBanner />
+            <ReportTable verdicts={checkState.report.verdicts} />
+          </>
+        )}
+      </section>
     </main>
   );
 }
