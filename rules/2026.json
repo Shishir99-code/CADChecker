@@ -1,0 +1,38 @@
+{
+  "season": "2026",
+  "note": "Limits below are PLACEHOLDER values only. Rule numbers and titles reflect standard FRC Robot Construction Rules terminology (frame perimeter, robot weight, starting configuration/height, robot+bumpers weight) but have NOT been verified against the live official FRC Game Manual for this season. Before trusting any check verdict, replace every limit marked limitStatus=PLACEHOLDER with the exact value from the current season's Game Manual / Robot Inspection Checklist.",
+  "rules": [
+    {
+      "rule": "R101",
+      "title": "Frame Perimeter",
+      "limit": 110,
+      "limitStatus": "PLACEHOLDER",
+      "unit": "in",
+      "operator": "max"
+    },
+    {
+      "rule": "R103",
+      "title": "Robot Weight (excluding bumpers and battery)",
+      "limit": 115,
+      "limitStatus": "PLACEHOLDER",
+      "unit": "kg",
+      "operator": "max"
+    },
+    {
+      "rule": "R104",
+      "title": "Starting Configuration Height",
+      "limit": 30,
+      "limitStatus": "PLACEHOLDER",
+      "unit": "in",
+      "operator": "max"
+    },
+    {
+      "rule": "R408",
+      "title": "Robot Weight (including bumpers)",
+      "limit": 135,
+      "limitStatus": "PLACEHOLDER",
+      "unit": "kg",
+      "operator": "max"
+    }
+  ]
+}
