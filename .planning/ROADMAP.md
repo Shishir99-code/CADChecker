@@ -38,7 +38,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Walking-skeleton auth slice: scaffold + Onshape OAuth + server-side session + iframe panel shell (CONN-01)
+- [x] 01-01-PLAN.md — Walking-skeleton auth slice: scaffold + Onshape OAuth + server-side session + iframe panel shell (CONN-01)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -115,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Connected Foundation & First Check | 0/3 | Not started | - |
+| 1. Connected Foundation & First Check | 1/3 | In Progress|  |
 | 2. Trustworthy Weight | 0/2 | Not started | - |
 | 3. Frame Perimeter & Height | 0/2 | Not started | - |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |

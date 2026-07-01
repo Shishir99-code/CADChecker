@@ -9,7 +9,7 @@ Requirements for the initial release — the smallest end-to-end useful slice. E
 
 ### Connection & Context
 
-- [ ] **CONN-01**: User can connect CADChecker to Onshape via OAuth2 and authorize access to a document
+- [x] **CONN-01**: User can connect CADChecker to Onshape via OAuth2 and authorize access to a document
 - [ ] **CONN-02**: The panel loads inside the Onshape document view and correctly identifies the active document / workspace / element context (re-derived at check time, not cached at mount)
 - [ ] **CONN-03**: The Onshape session stays valid across a multi-hour CAD session (access-token refresh handled transparently; "session expired" is distinguished from a real failure)
 
@@ -86,7 +86,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONN-01 | Phase 1 | Pending |
+| CONN-01 | Phase 1 | Complete |
 | CONN-02 | Phase 1 | Pending |
 | CONN-03 | Phase 1 | Pending |
 | CONF-01 | Phase 1 | Pending |
@@ -104,6 +104,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | RSLT-03 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 16 total
 - Mapped to phases: 16
 - Unmapped: 0 ✓

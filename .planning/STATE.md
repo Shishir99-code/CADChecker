@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 01 Plan 01 paused at Task 4 checkpoint (human-verify, blocking-human) -- Tasks 1-3 committed, awaiting OAuth+iframe verification in real Onshape docs
-last_updated: "2026-07-01T19:40:41.196Z"
+stopped_at: "Phase 01 Plan 01 complete (CONN-01 satisfied); next: 01-02 (pure check core)"
+last_updated: "2026-07-01T22:32:09.322Z"
 last_activity: 2026-07-01 -- Phase 01 execution started
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-07-01)
 ## Current Position
 
 Phase: 01 (connected-foundation-first-check) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 01
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-07-01 -- Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01 P01 | 143min | 4 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,8 @@ Recent decisions affecting current work:
 - Roadmap: Weight verdict (WGHT-03) is sequenced in Phase 2 together with the material-default audit (WGHT-01/02), not in Phase 1, so no weight number is ever shown before it's trustworthy. Phase 1 proves check-engine plumbing via RUN-01 (structured "check now" report) rather than claiming an early weight verdict.
 - Roadmap: Occurrence-traversal utility and check-engine registry are built once in Phase 1 and reused by weight (Phase 2) and perimeter (Phase 3) checks — no divergent per-check traversal logic.
 - Roadmap: Frame perimeter (Phase 3) is explicitly the floor-projected 2D convex hull, sequenced after the check-engine is proven with the weight check in Phase 2, per research pitfall guidance.
+- [Phase 01]: Single-origin ngrok->Vite dev proxy + trust proxy required for the Secure session cookie to be issued behind ngrok/Render TLS termination
+- [Phase 01]: ESLint 10 flat config (eslint.config.js) used instead of .eslintrc.cjs since the legacy config format is unsupported
 
 ### Pending Todos
 
@@ -74,6 +77,7 @@ None yet.
 - Phase 3 (research flag): Floor-plane determination and the minor-protrusion (<=1/4 in) exception for frame perimeter have no clean API answer — needs experimentation against real public team CAD during Phase 3 planning/execution.
 - Phase 3: Exact 2026 Game Manual rule numbers/text (R101, R103, R104, R107, R408) were not directly extracted from the official PDF during research (binary parsing failed) — re-verify exact R-numbers, titles, and limit values against the live 2026 Game Manual before finalizing Phase 1's versioned config (CONF-01/CONF-02) and again before Phase 3.
 - Phase 1 Plan 01 paused at Task 4 (checkpoint:human-verify, gate=blocking-human): OAuth + iframe embedding must be verified by a human in real Onshape documents (Chrome + Safari) before Plan 01 completes.
+- Phase 1 Plan 03: Safari third-party-cookie (ITP) behavior for the in-iframe session cookie has not been tested -- must be verified when the /api/check fetch is wired (T-01-SC in 01-01-PLAN.md threat model).
 
 ## Deferred Items
 
@@ -89,6 +93,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T19:40:41.192Z
-Stopped at: Phase 01 Plan 01 paused at Task 4 checkpoint (human-verify, blocking-human) -- Tasks 1-3 committed, awaiting OAuth+iframe verification in real Onshape docs
-Resume file: .planning/phases/01-connected-foundation-first-check/01-01-PLAN.md
+Last session: 2026-07-01T22:32:09.318Z
+Stopped at: Phase 01 Plan 01 complete (CONN-01 satisfied); next: 01-02 (pure check core)
+Resume file: .planning/phases/01-connected-foundation-first-check/01-02-PLAN.md
