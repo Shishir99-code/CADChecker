@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: cadchecker
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: node dist/server/index.js
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: ONSHAPE_CLIENT_ID
+        sync: false
+      - key: ONSHAPE_CLIENT_SECRET
+        sync: false
+      - key: ONSHAPE_REDIRECT_URI
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: PORT
+        value: 10000
+    autoDeploy: true

@@ -1,0 +1,47 @@
+{
+  "name": "cadchecker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Onshape-integrated legality checker for FRC robots",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,panel \"node --watch --experimental-strip-types src/server/index.ts\" \"vite\"",
+    "dev:server": "node --watch --experimental-strip-types src/server/index.ts",
+    "dev:panel": "vite",
+    "build": "tsc -p tsconfig.server.json && vite build",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "express-session": "1.19.0",
+    "passport": "0.7.0",
+    "passport-onshape": "1.2.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/express-session": "1.19.0",
+    "@types/node": "26.1.0",
+    "@types/passport": "1.0.17",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@types/supertest": "6.0.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "concurrently": "10.0.3",
+    "eslint": "10.6.0",
+    "openapi-fetch": "0.17.0",
+    "openapi-typescript": "7.13.0",
+    "supertest": "7.2.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.62.1",
+    "vite": "8.1.2",
+    "vitest": "4.1.9"
+  }
+}

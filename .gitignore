@@ -1,0 +1,6 @@
+node_modules
+dist
+.env
+src/server/onshape-client/types
+*.log
+.DS_Store
