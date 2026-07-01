@@ -13,7 +13,9 @@
     "resolveJsonModule": true,
     "declaration": false,
     "sourceMap": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
   },
   "include": ["src/server"],
   "exclude": ["src/server/**/*.test.ts", "src/panel"]

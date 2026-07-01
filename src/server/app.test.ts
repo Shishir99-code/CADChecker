@@ -10,6 +10,11 @@ function testApp() {
       saveUninitialized: false,
       cookie: { httpOnly: true, secure: false, sameSite: "lax" },
     },
+    onshapeEnv: {
+      clientID: "test-client-id",
+      clientSecret: "test-client-secret",
+      callbackURL: "https://example.test/auth/onshape/callback",
+    },
   });
 }
 
@@ -24,13 +29,19 @@ describe("GET /healthz", () => {
 
 describe("GET /auth/onshape", () => {
   it("redirects (302) to Onshape's authorize endpoint with a CSRF state parameter", async () => {
-    // RED at Task 1: no auth router is wired into buildApp() yet — this is the intended
-    // failing end-to-end entry point for the auth slice. Task 2 wires passport-onshape's
-    // OnshapeStrategy + authRouter and turns this GREEN.
     const app = testApp();
     const res = await request(app).get("/auth/onshape");
     expect(res.status).toBe(302);
     expect(res.headers.location).toMatch(/onshape\.com/);
     expect(res.headers.location).toMatch(/state=/);
+  });
+
+  it("sets an httpOnly session cookie on the initial request (state stored server-side)", async () => {
+    const app = testApp();
+    const res = await request(app).get("/auth/onshape");
+    const setCookie = res.headers["set-cookie"];
+    expect(setCookie).toBeDefined();
+    const cookieHeader = Array.isArray(setCookie) ? setCookie.join(";") : setCookie;
+    expect(cookieHeader).toMatch(/HttpOnly/i);
   });
 });
