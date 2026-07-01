@@ -25,6 +25,14 @@ export interface BuildAppOptions {
 export function buildApp(options: BuildAppOptions): Express {
   const app = express();
 
+  // The app runs behind a TLS-terminating proxy in every deployed context:
+  // ngrok -> Vite dev proxy -> Express in local dev, and Render's edge in prod.
+  // Without trusting the proxy, Express sees req.secure === false over the
+  // internal HTTP hop and express-session silently refuses to set the
+  // `Secure` session cookie -- OAuth would "succeed" but the browser would
+  // hold no session (RESEARCH Pitfall 2). Trusting X-Forwarded-Proto fixes it.
+  app.set("trust proxy", 1);
+
   app.use(express.json());
   app.use(session(options.sessionOptions));
   app.use(passport.initialize());
