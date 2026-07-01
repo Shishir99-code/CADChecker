@@ -30,12 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A multi-hour session (or a simulated expired token) triggers a transparent token refresh, or a clearly labeled "session expired — reconnect" state that is visibly distinct from a real check failure
   4. Clicking "check now" returns a structured report (not a crash or blank state) whose rule limits and titles are loaded from a versioned, schema-validated season config file — never a hardcoded string
   5. The returned report is produced by a pluggable check engine calling a shared occurrence-traversal utility (subassembly walk + transforms + tag filtering) — verifiable by the engine registering more than one independent check function using the same underlying facts-gathering path
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Walking-skeleton auth slice: scaffold + Onshape OAuth + server-side session + iframe panel shell (CONN-01)
+- [ ] 01-02-PLAN.md — Pure check core: versioned zod-validated season config + shared occurrence-traversal + pluggable check engine (CONF-01/02, RUN-01)
+- [ ] 01-03-PLAN.md — Wiring slice: typed Onshape client + 401 refresh + live-context /api/check + report/Reconnect panel (CONN-02/03, RUN-01)
 
 ### Phase 2: Trustworthy Weight
 **Goal**: A team sees a robot weight verdict they can actually trust — because CADChecker first audits every part for a missing/default material (the #1 cause of CAD weight silently diverging from the real robot) and refuses to report a confident pass/fail until that's accounted for.
