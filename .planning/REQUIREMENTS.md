@@ -86,28 +86,28 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONN-01 | — | Pending |
-| CONN-02 | — | Pending |
-| CONN-03 | — | Pending |
-| CONF-01 | — | Pending |
-| CONF-02 | — | Pending |
-| RUN-01 | — | Pending |
-| WGHT-01 | — | Pending |
-| WGHT-02 | — | Pending |
-| WGHT-03 | — | Pending |
-| WGHT-04 | — | Pending |
-| GEOM-01 | — | Pending |
-| GEOM-02 | — | Pending |
-| GEOM-03 | — | Pending |
-| RSLT-01 | — | Pending |
-| RSLT-02 | — | Pending |
-| RSLT-03 | — | Pending |
+| CONN-01 | Phase 1 | Pending |
+| CONN-02 | Phase 1 | Pending |
+| CONN-03 | Phase 1 | Pending |
+| CONF-01 | Phase 1 | Pending |
+| CONF-02 | Phase 1 | Pending |
+| RUN-01 | Phase 1 | Pending |
+| WGHT-01 | Phase 2 | Pending |
+| WGHT-02 | Phase 2 | Pending |
+| WGHT-03 | Phase 2 | Pending |
+| WGHT-04 | Phase 2 | Pending |
+| GEOM-01 | Phase 3 | Pending |
+| GEOM-02 | Phase 3 | Pending |
+| GEOM-03 | Phase 3 | Pending |
+| RSLT-01 | Phase 4 | Pending |
+| RSLT-02 | Phase 4 | Pending |
+| RSLT-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 16 total
-- Mapped to phases: 0 (filled by roadmap)
-- Unmapped: 16 ⚠️ (resolved at roadmap creation)
+- Mapped to phases: 16
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-01*
-*Last updated: 2026-07-01 after initial definition*
+*Last updated: 2026-07-01 after roadmap creation (100% v1 coverage across 4 phases)*
