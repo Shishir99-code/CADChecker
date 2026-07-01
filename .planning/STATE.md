@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 01 Plan 01 complete (CONN-01 satisfied); next: 01-02 (pure check core)"
-last_updated: "2026-07-01T22:32:09.322Z"
+stopped_at: "Phase 01 Plan 02 complete (CONF-01/CONF-02/RUN-01 core proven); next: 01-03 (wiring: typed client, live /api/check, report UI)"
+last_updated: "2026-07-01T22:43:57.850Z"
 last_activity: 2026-07-01 -- Phase 01 execution started
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-01)
 ## Current Position
 
 Phase: 01 (connected-foundation-first-check) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-01 -- Phase 01 execution started
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 143min | 4 tasks | 22 files |
+| Phase 01 P02 | 6min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Recent decisions affecting current work:
 - Roadmap: Frame perimeter (Phase 3) is explicitly the floor-projected 2D convex hull, sequenced after the check-engine is proven with the weight check in Phase 2, per research pitfall guidance.
 - [Phase 01]: Single-origin ngrok->Vite dev proxy + trust proxy required for the Secure session cookie to be issued behind ngrok/Render TLS termination
 - [Phase 01]: ESLint 10 flat config (eslint.config.js) used instead of .eslintrc.cjs since the legacy config format is unsupported
+- [Phase 01]: loadSeasonConfig resolves the repo root via fileURLToPath(import.meta.url) rather than process.cwd(), so the loader works regardless of the caller's working directory
+- [Phase 01]: Both proof-of-plumbing checks cite their season-config rule entry positionally (rules[0]/rules[1]) rather than hardcoding a rule string, keeping them fully config-driven
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T22:32:09.318Z
-Stopped at: Phase 01 Plan 01 complete (CONN-01 satisfied); next: 01-02 (pure check core)
-Resume file: .planning/phases/01-connected-foundation-first-check/01-02-PLAN.md
+Last session: 2026-07-01T22:43:57.846Z
+Stopped at: Phase 01 Plan 02 complete (CONF-01/CONF-02/RUN-01 core proven); next: 01-03 (wiring: typed client, live /api/check, report UI)
+Resume file: .planning/phases/01-connected-foundation-first-check/01-03-PLAN.md

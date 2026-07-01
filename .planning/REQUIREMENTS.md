@@ -15,12 +15,12 @@ Requirements for the initial release — the smallest end-to-end useful slice. E
 
 ### Rule Configuration
 
-- [ ] **CONF-01**: Season rule limits (robot perimeter, starting height, weight excl. bumpers/battery, weight incl. bumpers) load from a versioned per-season config file, validated at load — never hardcoded
-- [ ] **CONF-02**: Each rule limit in config carries its rule number and title so checks can cite them (e.g. R101, R103, R104, R408), reflecting current-season terminology
+- [x] **CONF-01**: Season rule limits (robot perimeter, starting height, weight excl. bumpers/battery, weight incl. bumpers) load from a versioned per-season config file, validated at load — never hardcoded
+- [x] **CONF-02**: Each rule limit in config carries its rule number and title so checks can cite them (e.g. R101, R103, R104, R408), reflecting current-season terminology
 
 ### Running Checks
 
-- [ ] **RUN-01**: User can manually trigger a legality check ("check now") for the active document and get a structured pass/fail report back
+- [x] **RUN-01**: User can manually trigger a legality check ("check now") for the active document and get a structured pass/fail report back
 
 ### Weight & Material
 
@@ -89,9 +89,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CONN-01 | Phase 1 | Complete |
 | CONN-02 | Phase 1 | Pending |
 | CONN-03 | Phase 1 | Pending |
-| CONF-01 | Phase 1 | Pending |
-| CONF-02 | Phase 1 | Pending |
-| RUN-01 | Phase 1 | Pending |
+| CONF-01 | Phase 1 | Complete |
+| CONF-02 | Phase 1 | Complete |
+| RUN-01 | Phase 1 | Complete |
 | WGHT-01 | Phase 2 | Pending |
 | WGHT-02 | Phase 2 | Pending |
 | WGHT-03 | Phase 2 | Pending |
