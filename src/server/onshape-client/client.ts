@@ -19,7 +19,7 @@ export class OnshapeApiError extends Error {
   }
 }
 
-interface OnshapeClientEnv {
+export interface OnshapeClientEnv {
   clientID: string;
   clientSecret: string;
 }

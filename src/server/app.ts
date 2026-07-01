@@ -3,6 +3,7 @@ import session, { type SessionOptions } from "express-session";
 import passport from "passport";
 import { configureOnshapeStrategy, type OnshapeOAuthEnv } from "./auth/passport-config.ts";
 import { authRouter } from "./routes/auth.routes.ts";
+import { createCheckRouter } from "./routes/check.routes.ts";
 
 export interface BuildAppOptions {
   /** express-session options; caller (index.ts) supplies the real secret/cookie config. */
@@ -48,6 +49,10 @@ export function buildApp(options: BuildAppOptions): Express {
 
   if (options.onshapeEnv) {
     app.use(authRouter);
+    // POST /api/check needs only clientID/clientSecret (for token refresh);
+    // OnshapeOAuthEnv is a structural superset (adds callbackURL), so it can
+    // be passed directly.
+    app.use(createCheckRouter({ onshapeEnv: options.onshapeEnv }));
   }
 
   return app;
