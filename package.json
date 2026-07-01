@@ -13,7 +13,8 @@
     "dev:panel": "vite",
     "build": "tsc -p tsconfig.server.json && vite build",
     "lint": "eslint src",
-    "test": "vitest run"
+    "test": "vitest run",
+    "gen:types": "openapi-typescript https://raw.githubusercontent.com/onshape-public/onshape-clients/master/openapi.json -o src/server/onshape-client/types/onshape.d.ts"
   },
   "dependencies": {
     "dotenv": "17.4.2",
