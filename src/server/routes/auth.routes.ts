@@ -36,7 +36,11 @@ authRouter.get(
       // passport-config.ts writes accessToken/refreshToken onto req.session
       // BEFORE this point, so without keepSessionInfo the tokens are wiped by
       // regeneration and every later /api/check sees an empty session -> 401.
-      req.logIn(user, { keepSessionInfo: true }, (loginErr) => {
+      // `session: true` is passport's default (establish a login session); it
+      // is included explicitly only because @types/passport's LogInOptions
+      // marks it required, so omitting it fails `tsc` (and thus `npm run
+      // build`) even though the runtime default is identical.
+      req.logIn(user, { session: true, keepSessionInfo: true }, (loginErr) => {
         if (loginErr) {
           return next(loginErr);
         }
