@@ -13,7 +13,7 @@ CADChecker ships as four vertical MVP slices, each a thin end-to-end path throug
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Connected Foundation & First Check** - OAuth-connected panel runs a manual check-now and returns a structured, rule-cited report using a shared occurrence-traversal utility and versioned config
+- [x] **Phase 1: Connected Foundation & First Check** - OAuth-connected panel runs a manual check-now and returns a structured, rule-cited report using a shared occurrence-traversal utility and versioned config (completed 2026-07-02)
 - [ ] **Phase 2: Trustworthy Weight** - Material-default audit gates two separately-filtered weight verdicts (robot-only R103, robot+bumpers R408)
 - [ ] **Phase 3: Frame Perimeter & Height** - Robot/frame perimeter (2D convex hull of tagged frame parts, rendered visually) and starting-configuration height checks
 - [ ] **Phase 4: Trust-Bar Results Panel** - Every verdict cites its rule, discloses what was measured, and never silently passes when data is missing
@@ -46,7 +46,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Wiring slice: typed Onshape client + 401 refresh + live-context /api/check + report/Reconnect panel (CONN-02/03, RUN-01)
+- [x] 01-03-PLAN.md — Wiring slice: typed Onshape client + 401 refresh + live-context /api/check + report/Reconnect panel (CONN-02/03, RUN-01)
 
 ### Phase 2: Trustworthy Weight
 
@@ -115,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Connected Foundation & First Check | 2/3 | In Progress|  |
+| 1. Connected Foundation & First Check | 3/3 | Complete   | 2026-07-02 |
 | 2. Trustworthy Weight | 0/2 | Not started | - |
 | 3. Frame Perimeter & Height | 0/2 | Not started | - |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |

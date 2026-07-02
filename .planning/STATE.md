@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Phase 01 Plan 02 complete (CONF-01/CONF-02/RUN-01 core proven); next: 01-03 (wiring: typed client, live /api/check, report UI)"
-last_updated: "2026-07-01T22:43:57.850Z"
+status: verifying
+stopped_at: Phase 01 Plan 03 complete -- CONN-02/CONN-03/RUN-01 proven end-to-end (Task 4 human-verify approved); Phase 01 all 3 plans done, ready for phase verification
+last_updated: "2026-07-02T20:03:32.456Z"
 last_activity: 2026-07-01 -- Phase 01 execution started
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 25
 ---
 
 # Project State
@@ -25,26 +25,26 @@ See: .planning/PROJECT.md (updated 2026-07-01)
 
 ## Current Position
 
-Phase: 01 (connected-foundation-first-check) — EXECUTING
+Phase: 01 (connected-foundation-first-check) — ALL PLANS COMPLETE
 Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-07-01 -- Phase 01 execution started
+Status: Ready for phase verification
+Last activity: 2026-07-02 -- Phase 01 Plan 03 complete (CONN-02/CONN-03/RUN-01 proven end-to-end)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100% (phase 01 plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: - min
-- Total execution time: 0 hours
+- Total plans completed: 3
+- Average duration: ~61 min
+- Total execution time: ~3.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01 | 3 | ~184min | ~61min |
 
 **Recent Trend:**
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01 P01 | 143min | 4 tasks | 22 files |
 | Phase 01 P02 | 6min | 3 tasks | 11 files |
+| Phase 01 P03 | 35min | 4 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,10 @@ Recent decisions affecting current work:
 - [Phase 01]: ESLint 10 flat config (eslint.config.js) used instead of .eslintrc.cjs since the legacy config format is unsupported
 - [Phase 01]: loadSeasonConfig resolves the repo root via fileURLToPath(import.meta.url) rather than process.cwd(), so the loader works regardless of the caller's working directory
 - [Phase 01]: Both proof-of-plumbing checks cite their season-config rule entry positionally (rules[0]/rules[1]) rather than hardcoding a rule string, keeping them fully config-driven
+- [Phase 01]: callWithRefresh treats ANY refresh failure identically (thrown or non-2xx) -- never branches on refresh-failure status code
+- [Phase 01]: check.routes.ts re-derives the target element server-side via getElementsInDocument on every request, never trusting a panel-supplied elementId (closes CONN-02, threat T-01-11)
+- [Phase 01]: Vite dev proxy prefixes must be slash-scoped (/api/, /auth/) -- a bare /api prefix swallows the panel's own /api.ts module path
+- [Phase 01]: auth.routes.ts passes keepSessionInfo: true to req.logIn() so passport's session regeneration does not wipe accessToken/refreshToken written before logIn
 
 ### Pending Todos
 
@@ -80,7 +85,8 @@ None yet.
 - Phase 3 (research flag): Floor-plane determination and the minor-protrusion (<=1/4 in) exception for frame perimeter have no clean API answer — needs experimentation against real public team CAD during Phase 3 planning/execution.
 - Phase 3: Exact 2026 Game Manual rule numbers/text (R101, R103, R104, R107, R408) were not directly extracted from the official PDF during research (binary parsing failed) — re-verify exact R-numbers, titles, and limit values against the live 2026 Game Manual before finalizing Phase 1's versioned config (CONF-01/CONF-02) and again before Phase 3.
 - Phase 1 Plan 01 paused at Task 4 (checkpoint:human-verify, gate=blocking-human): OAuth + iframe embedding must be verified by a human in real Onshape documents (Chrome + Safari) before Plan 01 completes.
-- Phase 1 Plan 03: Safari third-party-cookie (ITP) behavior for the in-iframe session cookie has not been tested -- must be verified when the /api/check fetch is wired (T-01-SC in 01-01-PLAN.md threat model).
+- Phase 1 Plan 03: Safari third-party-cookie (ITP) behavior for the embedded-iframe session cookie has not been tested (deferred by the user); still open -- carry forward before considering cross-browser support proven (T-01-SC in 01-01-PLAN.md threat model).
+- USER REQUEST: dedicated UI/styling pass for the panel deferred until checks are real (post Phase 2-4) -- panel is intentionally unstyled plumbing today; suggest /gsd-ui-phase later.
 
 ## Deferred Items
 
@@ -96,6 +102,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-01T22:43:57.846Z
-Stopped at: Phase 01 Plan 02 complete (CONF-01/CONF-02/RUN-01 core proven); next: 01-03 (wiring: typed client, live /api/check, report UI)
-Resume file: .planning/phases/01-connected-foundation-first-check/01-03-PLAN.md
+Last session: 2026-07-02T20:03:32.452Z
+Stopped at: Phase 01 Plan 03 complete -- CONN-02/CONN-03/RUN-01 proven end-to-end (Task 4 human-verify approved); Phase 01 all 3 plans done, ready for phase verification
+Resume file: None
