@@ -30,7 +30,13 @@ authRouter.get(
         // with a generic error indicator, no sensitive detail leaked.
         return res.redirect("/?auth=error");
       }
-      req.logIn(user, (loginErr) => {
+      // `keepSessionInfo: true` is REQUIRED. Passport 0.6+ regenerates the
+      // session on login (session-fixation protection), which by default
+      // discards everything except `passport.user`. The verify callback in
+      // passport-config.ts writes accessToken/refreshToken onto req.session
+      // BEFORE this point, so without keepSessionInfo the tokens are wiped by
+      // regeneration and every later /api/check sees an empty session -> 401.
+      req.logIn(user, { keepSessionInfo: true }, (loginErr) => {
         if (loginErr) {
           return next(loginErr);
         }
