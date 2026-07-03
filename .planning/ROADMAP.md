@@ -61,12 +61,20 @@ Plans:
   3. Once all parts have material assigned, user sees a robot-weight verdict (R103, excluding bumpers/battery) computed from an occurrence-filtered mass query, compared against the season limit
   4. User separately sees a robot+bumpers weight verdict (R408) computed from a distinctly-filtered occurrence query (not the same number relabeled), compared against its own season limit
 
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Add getPartStudioMassProperties + getPartsMetadata typed methods to OnshapeClient, then live-verify the mass/material response contract (mass[0]=nominal-kg, SI units, parts[]→partId join key, material-absence rule) — blocking human-verify spike (WGHT-01, WGHT-03, WGHT-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02-PLAN.md — Extend Fact + Verdict shapes and ship the material audit end-to-end (enrichment merge + first-class audit row) (WGHT-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-03-PLAN.md — Two distinctly-filtered, per-verdict-gated weight verdicts (R103 robot-only, R408 robot+bumpers) + rules/2026.json unit fix (WGHT-02, WGHT-03, WGHT-04)
 
 ### Phase 3: Frame Perimeter & Height
 
@@ -116,6 +124,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
-| 2. Trustworthy Weight | 0/2 | Not started | - |
+| 2. Trustworthy Weight | 0/3 | Not started | - |
 | 3. Frame Perimeter & Height | 0/2 | Not started | - |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |
