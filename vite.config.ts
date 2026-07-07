@@ -9,6 +9,12 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    // Bind to all interfaces (IPv4 + IPv6). ngrok forwards to `localhost:5173`,
+    // which resolves to IPv4 127.0.0.1 first; on Node 17+ Vite's default
+    // `localhost` bind lands on IPv6 `[::1]` only, so ngrok's IPv4 connection is
+    // refused and the browser sees ERR_SSL_PROTOCOL_ERROR at the OAuth callback.
+    // Listening on 0.0.0.0 makes 127.0.0.1:5173 reachable for the tunnel.
+    host: true,
     // Single-origin dev: the ngrok HTTPS tunnel points at this Vite server,
     // which serves the panel and proxies the backend routes to Express (port
     // 3000). This makes the panel's relative /auth and /api calls, plus the
