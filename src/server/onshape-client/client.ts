@@ -7,6 +7,8 @@ const ONSHAPE_TOKEN_URL = "https://oauth.onshape.com/oauth/token";
 
 export type ElementSummary = components["schemas"]["BTDocumentElementInfo"];
 export type AssemblyDefinitionResponse = components["schemas"]["BTAssemblyDefinitionInfo"];
+export type MassPropertiesBulkResponse = components["schemas"]["BTMassPropertiesBulkInfo"];
+export type PartMetadata = components["schemas"]["BTPartMetadataInfo"];
 
 /** Thrown when an Onshape API call itself returns a non-2xx status (surfaced
  * to callWithRefresh via a `status` field so it can recognize 401s). */
@@ -85,6 +87,20 @@ export interface OnshapeClient {
     wvmid: string,
     elementId: string,
   ): Promise<AssemblyDefinitionResponse>;
+  getPartStudioMassProperties(
+    documentId: string,
+    wvm: string,
+    wvmid: string,
+    elementId: string,
+    partIds?: string[],
+    configuration?: string,
+  ): Promise<MassPropertiesBulkResponse>;
+  getPartsMetadata(
+    documentId: string,
+    wvm: string,
+    wvmid: string,
+    elementId: string,
+  ): Promise<PartMetadata[]>;
 }
 
 export function createOnshapeClient(session: RefreshableSession, env: OnshapeClientEnv): OnshapeClient {
@@ -141,6 +157,64 @@ export function createOnshapeClient(session: RefreshableSession, env: OnshapeCli
             throw new OnshapeApiError(res.status, "Failed to fetch assembly definition");
           }
           return (await res.json()) as AssemblyDefinitionResponse;
+        },
+        refreshFn,
+      );
+    },
+
+    async getPartStudioMassProperties(documentId, wvm, wvmid, elementId, partIds, configuration) {
+      return callWithRefresh(
+        session,
+        async () => {
+          // Like getAssemblyDefinition, the massproperties operation declares
+          // only a `default` response in the OpenAPI spec, so openapi-fetch's
+          // typed .GET() narrows `data` to `never`. Use raw fetch + cast
+          // through the generated BTMassPropertiesBulkInfo schema instead.
+          const url = new URL(
+            `/api/partstudios/d/${documentId}/${wvm}/${wvmid}/e/${elementId}/massproperties`,
+            ONSHAPE_API_BASE_URL,
+          );
+          // Filter to the specific parts we care about (bulk call per Part
+          // Studio element, avoiding the O(N)-per-part chatty anti-pattern).
+          for (const id of partIds ?? []) url.searchParams.append("partId", id);
+          // RESEARCH Pitfall 3: thread configuration through so mass properties
+          // reflect the specific configured variant, not the default.
+          if (configuration) url.searchParams.set("configuration", configuration);
+          const res = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${session.accessToken ?? ""}`,
+              Accept: "application/json",
+            },
+          });
+          if (!res.ok) {
+            throw new OnshapeApiError(res.status, "Failed to fetch part studio mass properties");
+          }
+          return (await res.json()) as MassPropertiesBulkResponse;
+        },
+        refreshFn,
+      );
+    },
+
+    async getPartsMetadata(documentId, wvm, wvmid, elementId) {
+      return callWithRefresh(
+        session,
+        async () => {
+          // Parts-metadata list operation also declares only a `default`
+          // response; same raw-fetch-then-cast idiom as above.
+          const url = new URL(
+            `/api/parts/d/${documentId}/${wvm}/${wvmid}/e/${elementId}`,
+            ONSHAPE_API_BASE_URL,
+          );
+          const res = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${session.accessToken ?? ""}`,
+              Accept: "application/json",
+            },
+          });
+          if (!res.ok) {
+            throw new OnshapeApiError(res.status, "Failed to fetch parts metadata");
+          }
+          return (await res.json()) as PartMetadata[];
         },
         refreshFn,
       );
