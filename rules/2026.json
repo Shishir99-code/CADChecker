@@ -15,7 +15,7 @@
       "title": "Robot Weight (excluding bumpers and battery)",
       "limit": 115,
       "limitStatus": "PLACEHOLDER",
-      "unit": "kg",
+      "unit": "lb",
       "operator": "max"
     },
     {
@@ -31,7 +31,7 @@
       "title": "Robot Weight (including bumpers)",
       "limit": 135,
       "limitStatus": "PLACEHOLDER",
-      "unit": "kg",
+      "unit": "lb",
       "operator": "max"
     }
   ]
