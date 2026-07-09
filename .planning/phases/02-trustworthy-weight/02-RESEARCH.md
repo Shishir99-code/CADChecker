@@ -336,17 +336,17 @@ export interface Verdict {
 
 ## Open Questions
 
-1. **Exact live JSON shape of `getPartStudioMassProperties` and `getPartsWMVE` responses**
+1. **Exact live JSON shape of `getPartStudioMassProperties` and `getPartsWMVE` responses** *(RESOLVED via 02-01 checkpoint — see 02-MASS-PROPERTIES-CONTRACT.md. `mass[0]` nominal + `hasMass`/`massMissingCount` semantics confirmed live. CORRECTION: a no-`partId` call returns a single `-all-` AGGREGATE body, not per-part entries — pass explicit partIds.)*
    - What we know: Full TypeScript schema (field names, optionality, array types) confirmed via the committed `onshape.d.ts` generated types.
    - What's unclear: Real numeric ranges/precision, whether `hasMass`/`massMissingCount` are populated the way forum posts describe on a genuinely unmaterialized part, and confirmation of the `mass[0]` nominal-value index.
    - Recommendation: First planning/execution task should be a `checkpoint:human-verify` or scripted spike hitting both endpoints against a real (or throwaway test) Onshape document containing at least one part with no material assigned, before writing the merge-step production code.
 
-2. **Onshape's REST API unit convention for mass in the raw JSON (SI-fixed vs. document-unit-dependent)**
+2. **Onshape's REST API unit convention for mass in the raw JSON (SI-fixed vs. document-unit-dependent)** *(RESOLVED via 02-01 checkpoint — see 02-MASS-PROPERTIES-CONTRACT.md. SI kg confirmed: a real aluminum part read 2.90 kg (≈6.4 lb), and `volume` came back in m³.)*
    - What we know: FeatureScript's internal representation is described as SI by community sources; general community consensus is the REST API returns SI regardless of document display units.
    - What's unclear: No official spec text was directly located (during this session) stating explicitly "mass-properties REST responses are always kg regardless of document unit settings."
    - Recommendation: Treat as MEDIUM confidence per A2 above; the live-document verification spike (Open Question 1) should also sanity-check the returned mass value against the document's known real-world weight in kg to confirm no unit surprises.
 
-3. **Whether `parts[]` reliably enumerates every part reachable through nested subassemblies, including patterned/mirrored instances**
+3. **Whether `parts[]` reliably enumerates every part reachable through nested subassemblies, including patterned/mirrored instances** *(RESOLVED via 02-01 checkpoint — see 02-MASS-PROPERTIES-CONTRACT.md. `parts[]` is a flat, per-unique-part deduplicated list carrying partId + documentId + elementId + configuration (+documentVersion/microversion/isStandardContent); many occurrences → one entry via shared partId. NEW LIMITATION: referenced (other-owner) documents can 403 even version-addressed — see contract F3.)*
    - What we know: `BTAssemblyDefinitionInfo.parts` is documented as a flat list on the same response as `rootAssembly`/`subAssemblies`.
    - What's unclear: Whether flattened/patterned occurrences (which `flatten-assembly.ts`'s existing traversal already handles for `Fact.path`) map 1:1 to entries in `parts[]`, or whether `parts[]` is deduplicated by underlying part-studio-part (i.e., one entry per unique CAD part, not one per occurrence) — which is actually expected and fine for mass-per-partId lookup, but should be explicitly confirmed so the merge step doesn't assume a 1:1 occurrence:parts[] cardinality.
    - Recommendation: Confirm during the same live-document spike; if `parts[]` is deduplicated (likely, since mass is a property of the underlying part, not the occurrence), the merge step correctly maps MANY occurrences (`Fact`s) to ONE `parts[]`/mass entry via shared `partId` — this is actually the expected, simpler case, not a problem, but worth confirming explicitly rather than assuming.
