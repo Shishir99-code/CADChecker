@@ -70,7 +70,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Extend Fact + Verdict shapes and ship the material audit end-to-end (enrichment merge + first-class audit row) (WGHT-01)
+- [x] 02-02-PLAN.md — Extend Fact + Verdict shapes and ship the material audit end-to-end (enrichment merge + first-class audit row) (WGHT-01)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -124,6 +124,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
-| 2. Trustworthy Weight | 1/3 | In Progress|  |
+| 2. Trustworthy Weight | 2/3 | In Progress|  |
 | 3. Frame Perimeter & Height | 0/2 | Not started | - |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |
