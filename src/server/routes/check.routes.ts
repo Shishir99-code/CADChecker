@@ -7,6 +7,7 @@ import { loadSeasonConfig } from "../config/load-season.ts";
 import { CheckEngine } from "../checks/engine.ts";
 import { occurrenceCountCheck } from "../checks/occurrence-count.check.ts";
 import { frameTagPresenceCheck } from "../checks/frame-tag-presence.check.ts";
+import { materialAuditCheck } from "../checks/material-audit.check.ts";
 
 const CURRENT_SEASON = "2026";
 
@@ -30,6 +31,7 @@ function buildEngine(): CheckEngine {
   const engine = new CheckEngine();
   engine.register(occurrenceCountCheck);
   engine.register(frameTagPresenceCheck);
+  engine.register(materialAuditCheck);
   return engine;
 }
 
