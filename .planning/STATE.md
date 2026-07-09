@@ -93,6 +93,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260707-geu | Serve built panel from Express (Render single-service deploy) | 2026-07-07 | 8a9f89f | [260707-geu-render-serve-panel](./quick/260707-geu-render-serve-panel/) |
+| 260709-k6r | Env-aware session cookie — OAuth over http://localhost (no tunnel) | 2026-07-09 | e5026e4 | [260709-k6r-enable-oauth-over-http-localhost-via-env](./quick/260709-k6r-enable-oauth-over-http-localhost-via-env/) |
 
 ## Deferred Items
 
