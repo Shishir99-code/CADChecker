@@ -98,8 +98,8 @@ describe("POST /api/check", () => {
       expect(verdict).toHaveProperty("rule");
       expect(verdict).toHaveProperty("title");
       expect(verdict).toHaveProperty("limit");
-      expect(verdict).toHaveProperty("measured");
-      expect(verdict).toHaveProperty("pass");
+      expect(verdict).toHaveProperty("status");
+      expect(verdict).toHaveProperty("caveats");
     }
   });
 

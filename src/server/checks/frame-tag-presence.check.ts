@@ -22,7 +22,8 @@ export const frameTagPresenceCheck: CheckFn = (facts: Fact[], config) => {
     title: entry.title,
     limit: entry.limit,
     unit: entry.unit,
-    measured,
-    pass: passesOperator(entry, measured),
+    status: passesOperator(entry, measured) ? "PASS" : "FAIL",
+    measuredCount: measured,
+    caveats: [],
   };
 };

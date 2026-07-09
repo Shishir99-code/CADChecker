@@ -30,8 +30,12 @@ export interface CheckReportVerdict {
   title: string;
   limit: number;
   unit: string;
-  measured: number;
-  pass: boolean;
+  status: "PASS" | "FAIL" | "UNKNOWN";
+  measured?: { lb: number; kg: number };
+  measuredCount?: number;
+  affectedPartCount?: number;
+  affectedParts?: Array<{ name: string; path: string[] }>;
+  caveats: string[];
 }
 
 export interface CheckReportContext {
