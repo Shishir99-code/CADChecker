@@ -66,7 +66,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Add getPartStudioMassProperties + getPartsMetadata typed methods to OnshapeClient, then live-verify the mass/material response contract (mass[0]=nominal-kg, SI units, parts[]→partId join key, material-absence rule) — blocking human-verify spike (WGHT-01, WGHT-03, WGHT-04)
+- [x] 02-01-PLAN.md — Add getPartStudioMassProperties + getPartsMetadata typed methods to OnshapeClient, then live-verify the mass/material response contract (mass[0]=nominal-kg, SI units, parts[]→partId join key, material-absence rule) — blocking human-verify spike (WGHT-01, WGHT-03, WGHT-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -124,6 +124,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
-| 2. Trustworthy Weight | 0/3 | Not started | - |
+| 2. Trustworthy Weight | 1/3 | In Progress|  |
 | 3. Frame Perimeter & Height | 0/2 | Not started | - |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |
