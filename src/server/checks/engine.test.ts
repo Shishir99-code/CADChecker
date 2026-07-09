@@ -33,16 +33,16 @@ describe("CheckEngine", () => {
     expect(verdicts).toHaveLength(2);
   });
 
-  it("occurrence-count Verdict.measured equals fact count", () => {
+  it("occurrence-count Verdict.measuredCount equals fact count", () => {
     const engine = buildEngine();
     const [occurrenceVerdict] = engine.runAll(facts, config);
-    expect(occurrenceVerdict?.measured).toBe(facts.length);
+    expect(occurrenceVerdict?.measuredCount).toBe(facts.length);
   });
 
-  it("frame-tag Verdict.measured equals the count of FRAME_-prefixed facts", () => {
+  it("frame-tag Verdict.measuredCount equals the count of FRAME_-prefixed facts", () => {
     const engine = buildEngine();
     const [, frameVerdict] = engine.runAll(facts, config);
-    expect(frameVerdict?.measured).toBe(2);
+    expect(frameVerdict?.measuredCount).toBe(2);
   });
 
   it("both checks receive the identical Fact[] reference", () => {
@@ -74,7 +74,7 @@ describe("CheckEngine", () => {
     };
     const engine = buildEngine();
     const verdicts = engine.runAll(facts, roomyConfig);
-    expect(verdicts.every((v) => v.pass === true)).toBe(true);
+    expect(verdicts.every((v) => v.status === "PASS")).toBe(true);
   });
 
   it("fails a max-operator entry when measured exceeds limit", () => {
@@ -88,6 +88,6 @@ describe("CheckEngine", () => {
     };
     const engine = buildEngine();
     const verdicts = engine.runAll(facts, tightConfig);
-    expect(verdicts.some((v) => v.pass === false)).toBe(true);
+    expect(verdicts.some((v) => v.status === "FAIL")).toBe(true);
   });
 });
