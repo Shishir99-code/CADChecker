@@ -14,7 +14,7 @@ CADChecker ships as four vertical MVP slices, each a thin end-to-end path throug
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Connected Foundation & First Check** - OAuth-connected panel runs a manual check-now and returns a structured, rule-cited report using a shared occurrence-traversal utility and versioned config (completed 2026-07-02)
-- [ ] **Phase 2: Trustworthy Weight** - Material-default audit gates two separately-filtered weight verdicts (robot-only R103, robot+bumpers R408)
+- [x] **Phase 2: Trustworthy Weight** - Material-default audit gates two separately-filtered weight verdicts (robot-only R103, robot+bumpers R408) (completed 2026-07-09)
 - [ ] **Phase 3: Frame Perimeter & Height** - Robot/frame perimeter (2D convex hull of tagged frame parts, rendered visually) and starting-configuration height checks
 - [ ] **Phase 4: Trust-Bar Results Panel** - Every verdict cites its rule, discloses what was measured, and never silently passes when data is missing
 
@@ -74,7 +74,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — Two distinctly-filtered, per-verdict-gated weight verdicts (R103 robot-only, R408 robot+bumpers) + rules/2026.json unit fix (WGHT-02, WGHT-03, WGHT-04)
+- [x] 02-03-PLAN.md — Two distinctly-filtered, per-verdict-gated weight verdicts (R103 robot-only, R408 robot+bumpers) + rules/2026.json unit fix (WGHT-02, WGHT-03, WGHT-04)
 
 ### Phase 3: Frame Perimeter & Height
 
@@ -124,6 +124,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
-| 2. Trustworthy Weight | 2/3 | In Progress|  |
+| 2. Trustworthy Weight | 3/3 | Complete   | 2026-07-09 |
 | 3. Frame Perimeter & Height | 0/2 | Not started | - |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |

@@ -25,9 +25,9 @@ Requirements for the initial release — the smallest end-to-end useful slice. E
 ### Weight & Material
 
 - [x] **WGHT-01**: The tool audits every part for a default/unset material and flags any that would be silently omitted from the mass total (material audit)
-- [ ] **WGHT-02**: The weight verdict is gated on the material audit — if parts are missing material, weight reports UNKNOWN (with the count), never a confident pass/fail
-- [ ] **WGHT-03**: User sees a robot-weight check excluding bumpers and battery against the season limit (R103), using an occurrence-filtered mass query
-- [ ] **WGHT-04**: User sees a robot-plus-bumpers weight check against the season limit (R408), using a separately-filtered mass query
+- [x] **WGHT-02**: The weight verdict is gated on the material audit — if parts are missing material, weight reports UNKNOWN (with the count), never a confident pass/fail
+- [x] **WGHT-03**: User sees a robot-weight check excluding bumpers and battery against the season limit (R103), using an occurrence-filtered mass query
+- [x] **WGHT-04**: User sees a robot-plus-bumpers weight check against the season limit (R408), using a separately-filtered mass query
 
 ### Geometry Checks
 
@@ -93,9 +93,9 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CONF-02 | Phase 1 | Complete |
 | RUN-01 | Phase 1 | Complete |
 | WGHT-01 | Phase 2 | Complete |
-| WGHT-02 | Phase 2 | Pending |
-| WGHT-03 | Phase 2 | Pending |
-| WGHT-04 | Phase 2 | Pending |
+| WGHT-02 | Phase 2 | Complete |
+| WGHT-03 | Phase 2 | Complete |
+| WGHT-04 | Phase 2 | Complete |
 | GEOM-01 | Phase 3 | Pending |
 | GEOM-02 | Phase 3 | Pending |
 | GEOM-03 | Phase 3 | Pending |
