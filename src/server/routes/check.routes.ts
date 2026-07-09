@@ -8,6 +8,8 @@ import { CheckEngine } from "../checks/engine.ts";
 import { occurrenceCountCheck } from "../checks/occurrence-count.check.ts";
 import { frameTagPresenceCheck } from "../checks/frame-tag-presence.check.ts";
 import { materialAuditCheck } from "../checks/material-audit.check.ts";
+import { robotWeightCheck } from "../checks/robot-weight.check.ts";
+import { robotBumpersWeightCheck } from "../checks/robot-bumpers-weight.check.ts";
 
 const CURRENT_SEASON = "2026";
 
@@ -32,6 +34,8 @@ function buildEngine(): CheckEngine {
   engine.register(occurrenceCountCheck);
   engine.register(frameTagPresenceCheck);
   engine.register(materialAuditCheck);
+  engine.register(robotWeightCheck);
+  engine.register(robotBumpersWeightCheck);
   return engine;
 }
 

@@ -136,7 +136,7 @@ describe("POST /api/check", () => {
     expect(res.status).toBe(401);
   });
 
-  it("re-derives live context via getElementsInDocument on THIS request and returns 3 verdicts", async () => {
+  it("re-derives live context via getElementsInDocument on THIS request and returns 5 verdicts", async () => {
     const getElementsInDocument = vi.fn().mockResolvedValue(stubElements());
     const getAssemblyDefinition = vi.fn().mockResolvedValue(stubAssemblyDefinition());
     const getPartStudioMassProperties = stubGetPartStudioMassProperties();
@@ -158,7 +158,7 @@ describe("POST /api/check", () => {
     expect(getElementsInDocument).toHaveBeenCalledWith("doc-1", "ws-1");
     expect(getAssemblyDefinition).toHaveBeenCalledWith("doc-1", "w", "ws-1", ASSEMBLY_ELEMENT_ID);
 
-    expect(res.body.verdicts).toHaveLength(3);
+    expect(res.body.verdicts).toHaveLength(5);
     expect(res.body.measuredContext).toEqual({
       documentId: "doc-1",
       workspaceId: "ws-1",
@@ -172,6 +172,8 @@ describe("POST /api/check", () => {
       expect(verdict).toHaveProperty("caveats");
     }
     expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "MAT-AUDIT")).toBe(true);
+    expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "R103")).toBe(true);
+    expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "R408")).toBe(true);
   });
 
   it("merges mass/material per-group with cross-document addressing and degrades gracefully on a referenced-document 403", async () => {
