@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Phase 03 Plan 01: Task 1 complete (commit 4dc5956); paused at Task 2 checkpoint:human-verify (blocking) - live bounding-box coordinate-frame verification required"
-last_updated: "2026-07-10T02:36:54.713Z"
-last_activity: 2026-07-10 -- Phase 03 execution started
+status: verifying
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-07-10T13:55:36.991Z"
+last_activity: 2026-07-10 -- Phase 03 Plan 01 Task 1 committed (4dc5956); paused at checkpoint
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 50
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-07-01)
 ## Current Position
 
 Phase: 03 (frame-perimeter-height) — EXECUTING
-Plan: 1 of 3 (Task 1/3 done, PAUSED at Task 2 checkpoint:human-verify [blocking])
-Status: Awaiting human verification of bounding-box coordinate frame (03-01-PLAN.md Task 2)
-Last activity: 2026-07-10 -- Phase 03 Plan 01 Task 1 committed (4dc5956); paused at checkpoint
+Plan: 2 of 3 (03-01 complete; 03-02 not yet started)
+Status: 03-01 complete -- bounding-box client methods added, coordinate-frame contract live-verified, season limits VERIFIED
+Last activity: 2026-07-10 -- Phase 03 Plan 01 complete (commits 4dc5956, a72329a, 204db9b, 45f070f, 877c6b3, c518a97)
 
 Progress: [██████████] 100% (phase 01 plans)
 
@@ -58,6 +58,7 @@ Progress: [██████████] 100% (phase 01 plans)
 | Phase 01 P03 | 35min | 4 tasks | 16 files |
 | Phase 02 P02 | 90min | 4 tasks | 13 files |
 | Phase 02-trustworthy-weight P03 | 15min | 3 tasks | 7 files |
+| Phase 03 P01 | 15min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 02]: materialAuditCheck excludes BATTERY_ parts and only reports materialAssigned===false (strict) as missing material; UNRESOLVED (undefined) is never counted, deferring UNKNOWN gating to the 02-03 weight verdicts
 - [Phase 02]: Per-group mass/material fetch re-throws both 401 OnshapeApiError and ReconnectRequiredError (not just 401), so a failed session refresh is never mistaken for an unreadable referenced document
 - [Phase 02-trustworthy-weight]: Updated check.routes.test.ts verdict-count assertion (3 -> 5) plus R103/R408 presence assertions since Task 3 directly changes that test's observable output.
+- [Phase 03]: Live-verified the bounding-box coordinate frame contract (A1-A4): per-part boxes are LOCAL (apply transform), assembly boxes are WORLD (no transform), the row-major translation-in-3/7/11 formula is correct as-is, values are SI meters — see 03-BOUNDING-BOX-CONTRACT.md; de-risks Plan 02/03 geometry implementation
+- [Phase 03]: occurrences[].path holds instance ids, not part ids -- the occurrence-to-part join must resolve the leaf id through an instance map built from rootAssembly.instances[] + subAssemblies[].instances[] (G1) — discovered as a bug fix during the 03-01 live-verification spike; applies to any future occurrence-to-part join
 
 ### Pending Todos
 
@@ -93,7 +96,7 @@ None yet.
 - Phase 1 Plan 01 paused at Task 4 (checkpoint:human-verify, gate=blocking-human): OAuth + iframe embedding must be verified by a human in real Onshape documents (Chrome + Safari) before Plan 01 completes.
 - Phase 1 Plan 03: Safari third-party-cookie (ITP) behavior for the embedded-iframe session cookie has not been tested (deferred by the user); still open -- carry forward before considering cross-browser support proven (T-01-SC in 01-01-PLAN.md threat model).
 - USER REQUEST: dedicated UI/styling pass for the panel deferred until checks are real (post Phase 2-4) -- panel is intentionally unstyled plumbing today; suggest /gsd-ui-phase later.
-- Phase 3 Plan 01 paused at Task 2 (checkpoint:human-verify, gate=blocking): a human must run scripts/spike-bounding-boxes.ts against a live Onshape document with an off-origin FRAME_-tagged part and record .planning/phases/03-frame-perimeter-height/03-BOUNDING-BOX-CONTRACT.md (confirming A1-A4) before Task 3 (season-config VERIFIED flip) can proceed.
+- Phase 3 (carried into Plan 02): the `finalindex` test document used for the 03-01 live-verification spike has no `FRAME_`-tagged parts (an off-origin fallback part was used instead) -- the `FRAME_`-tag selection path itself remains unproven end-to-end and should be validated against a properly tagged document during 03-02 execution.
 
 ### Quick Tasks Completed
 
@@ -116,6 +119,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-10T02:36:47.152Z
-Stopped at: Phase 03 Plan 01: Task 1 complete (commit 4dc5956); paused at Task 2 checkpoint:human-verify (blocking) - live bounding-box coordinate-frame verification required
-Resume file: .planning/phases/03-frame-perimeter-height/03-01-PLAN.md
+Last session: 2026-07-10T13:55:36.987Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None
