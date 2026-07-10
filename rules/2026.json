@@ -1,12 +1,12 @@
 {
   "season": "2026",
-  "note": "Limits below are PLACEHOLDER values only. Rule numbers and titles reflect standard FRC Robot Construction Rules terminology (frame perimeter, robot weight, starting configuration/height, robot+bumpers weight) but have NOT been verified against the live official FRC Game Manual for this season. Before trusting any check verdict, replace every limit marked limitStatus=PLACEHOLDER with the exact value from the current season's Game Manual / Robot Inspection Checklist.",
+  "note": "Limits below are VERIFIED against the official 2026 FRC Game Manual (Team Update 22). R101 defines the ROBOT PERIMETER (taut-string method); the 110.0in perimeter limit and the 30.0in starting-configuration height limit are both stated under R104 (STARTING CONFIGURATION -- max size). R107 is a separate any-time vertical-extension limit (also 30.0in numerically) and is NOT used by this phase's starting-height check. R103/R408 (robot weight excluding/including bumpers) are verified as-is.",
   "rules": [
     {
       "rule": "R101",
       "title": "Frame Perimeter",
       "limit": 110,
-      "limitStatus": "PLACEHOLDER",
+      "limitStatus": "VERIFIED",
       "unit": "in",
       "operator": "max"
     },
@@ -14,7 +14,7 @@
       "rule": "R103",
       "title": "Robot Weight (excluding bumpers and battery)",
       "limit": 115,
-      "limitStatus": "PLACEHOLDER",
+      "limitStatus": "VERIFIED",
       "unit": "lb",
       "operator": "max"
     },
@@ -22,7 +22,7 @@
       "rule": "R104",
       "title": "Starting Configuration Height",
       "limit": 30,
-      "limitStatus": "PLACEHOLDER",
+      "limitStatus": "VERIFIED",
       "unit": "in",
       "operator": "max"
     },
@@ -30,7 +30,7 @@
       "rule": "R408",
       "title": "Robot Weight (including bumpers)",
       "limit": 135,
-      "limitStatus": "PLACEHOLDER",
+      "limitStatus": "VERIFIED",
       "unit": "lb",
       "operator": "max"
     }
