@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-07-10T02:30:15.514Z"
-last_activity: 2026-07-10 -- Phase 03 planning complete
+stopped_at: "Phase 03 Plan 01: Task 1 complete (commit 4dc5956); paused at Task 2 checkpoint:human-verify (blocking) - live bounding-box coordinate-frame verification required"
+last_updated: "2026-07-10T02:36:54.713Z"
+last_activity: 2026-07-10 -- Phase 03 execution started
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 6
+  total_plans: 9
   completed_plans: 6
   percent: 50
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01)
 
 **Core value:** Surface FRC rule violations in a team's CAD design before in-person inspection, so problems are caught and fixed at design time.
-**Current focus:** Phase 02 — trustworthy-weight
+**Current focus:** Phase 03 — frame-perimeter-height
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-10 -- Phase 03 planning complete
+Phase: 03 (frame-perimeter-height) — EXECUTING
+Plan: 1 of 3 (Task 1/3 done, PAUSED at Task 2 checkpoint:human-verify [blocking])
+Status: Awaiting human verification of bounding-box coordinate frame (03-01-PLAN.md Task 2)
+Last activity: 2026-07-10 -- Phase 03 Plan 01 Task 1 committed (4dc5956); paused at checkpoint
 
 Progress: [██████████] 100% (phase 01 plans)
 
@@ -93,6 +93,7 @@ None yet.
 - Phase 1 Plan 01 paused at Task 4 (checkpoint:human-verify, gate=blocking-human): OAuth + iframe embedding must be verified by a human in real Onshape documents (Chrome + Safari) before Plan 01 completes.
 - Phase 1 Plan 03: Safari third-party-cookie (ITP) behavior for the embedded-iframe session cookie has not been tested (deferred by the user); still open -- carry forward before considering cross-browser support proven (T-01-SC in 01-01-PLAN.md threat model).
 - USER REQUEST: dedicated UI/styling pass for the panel deferred until checks are real (post Phase 2-4) -- panel is intentionally unstyled plumbing today; suggest /gsd-ui-phase later.
+- Phase 3 Plan 01 paused at Task 2 (checkpoint:human-verify, gate=blocking): a human must run scripts/spike-bounding-boxes.ts against a live Onshape document with an off-origin FRAME_-tagged part and record .planning/phases/03-frame-perimeter-height/03-BOUNDING-BOX-CONTRACT.md (confirming A1-A4) before Task 3 (season-config VERIFIED flip) can proceed.
 
 ### Quick Tasks Completed
 
@@ -115,6 +116,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-10T01:47:11.031Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-frame-perimeter-height/03-CONTEXT.md
+Last session: 2026-07-10T02:36:47.152Z
+Stopped at: Phase 03 Plan 01: Task 1 complete (commit 4dc5956); paused at Task 2 checkpoint:human-verify (blocking) - live bounding-box coordinate-frame verification required
+Resume file: .planning/phases/03-frame-perimeter-height/03-01-PLAN.md
