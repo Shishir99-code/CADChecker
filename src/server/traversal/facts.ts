@@ -26,4 +26,15 @@ export interface Fact {
    * `undefined` as `false`.
    */
   materialAssigned?: boolean;
+  /**
+   * World-space corners of the part's bounding box (8 corners, `FRAME_`
+   * parts only), each already run through the occurrence transform
+   * (03-BOUNDING-BOX-CONTRACT.md A1/A3). `undefined` means UNRESOLVED --
+   * the part's bounding box could not be read (referenced-document 403,
+   * mirrors contract F3) or the box's fields were partially absent
+   * (G4 -- an absent lowX..highZ field is UNRESOLVED, never defaulted to
+   * 0). NEVER treat `undefined` as a substituted zero-size footprint --
+   * doing so would silently shrink the perimeter hull (RESEARCH Pitfall 4).
+   */
+  bboxCornersWorld?: Array<[number, number, number]>;
 }

@@ -28,6 +28,18 @@ export interface Verdict {
   affectedPartCount?: number;
   affectedParts?: Array<{ name: string; path: string[] }>;
   caveats: string[];
+  /**
+   * Hull geometry for the SVG render (perimeter only), D-07. Vertices are
+   * world-space XY points in METERS (unit conversion for the LABEL happens
+   * separately via `measuredCount`/M_TO_IN -- the panel renders these raw
+   * for auto-scaled SVG mapping, never re-deriving hull math client-side).
+   * Absent entirely for non-geometry checks and for UNKNOWN geometry
+   * verdicts (no hull to show).
+   */
+  geometry?: {
+    hullVertices: Array<[number, number]>;
+    framePartFootprints?: Array<[number, number]>[];
+  };
 }
 
 /**
@@ -36,6 +48,15 @@ export interface Verdict {
  * and convert once here for the dual-figure `measured` display value.
  */
 export const KG_TO_LB = 2.20462;
+
+/**
+ * Single documented meters->inches conversion boundary (03-BOUNDING-BOX-
+ * CONTRACT.md A4: Onshape bounding-box/transform values are SI meters
+ * regardless of document display units) -- mirrors KG_TO_LB's placement and
+ * "one documented conversion boundary" discipline. No other file may
+ * hardcode this ratio.
+ */
+export const M_TO_IN = 39.37007874;
 
 /**
  * A CheckFn consumes the SAME shared Fact[] path every other registered

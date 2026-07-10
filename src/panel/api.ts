@@ -36,6 +36,16 @@ export interface CheckReportVerdict {
   affectedPartCount?: number;
   affectedParts?: Array<{ name: string; path: string[] }>;
   caveats: string[];
+  /**
+   * Mirrors src/server/checks/engine.ts's Verdict.geometry field-for-field
+   * (D-07) -- hull vertices for the perimeter check's SVG render. The panel
+   * performs zero geometry recomputation; HullRender.tsx only maps these
+   * server-supplied vertex arrays into an SVG polygon.
+   */
+  geometry?: {
+    hullVertices: Array<[number, number]>;
+    framePartFootprints?: Array<[number, number]>[];
+  };
 }
 
 export interface CheckReportContext {
