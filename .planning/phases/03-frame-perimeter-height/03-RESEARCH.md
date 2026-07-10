@@ -437,12 +437,12 @@ function cornersOf(box: { lowX?: number; lowY?: number; lowZ?: number; highX?: n
 
 ## Open Questions
 
-1. **Bounding-box coordinate frame (the phase's primary unknown)**
+1. **Bounding-box coordinate frame (the phase's primary unknown)** (RESOLVED via 03-01 checkpoint — see 03-BOUNDING-BOX-CONTRACT.md)
    - What we know: Neither endpoint's OpenAPI spec entry nor Onshape's public docs state the coordinate frame explicitly. Onshape's general transform model (occurrence transforms are absolute, world = the top-level assembly's own coordinate system) strongly supports the inference in A1/A2 above.
    - What's unclear: Whether the inference holds empirically for these two SPECIFIC endpoints (as opposed to the general assembly-transform model, which is well-documented but describes a different API surface — `getAssemblyDefinition`'s `occurrences[].transform`, not the bounding-box endpoints).
    - Recommendation: First planning/execution task is `scripts/spike-bounding-boxes.ts` (mirrors `spike-mass-properties.ts`'s already-proven pattern), run against a real document with at least one `FRAME_`-tagged part positioned off the assembly origin (so a coordinate-frame mistake is visually/numerically obvious, not masked by coincidental symmetry).
 
-2. **Does `getAssemblyBoundingBoxes` include hidden/suppressed occurrences by default for the height figure?**
+2. **Does `getAssemblyBoundingBoxes` include hidden/suppressed occurrences by default for the height figure?** (RESOLVED via 03-01 checkpoint — see 03-BOUNDING-BOX-CONTRACT.md)
    - What we know: The endpoint has an `includeHidden` query parameter (boolean), implying the default behavior excludes hidden parts.
    - What's unclear: Whether "hidden" here means Onshape-UI-hidden (a display-only toggle unrelated to the actual robot) or something else, and whether a team's default-configuration state could have physically-relevant parts hidden.
    - Recommendation: Leave `includeHidden` unset (default false, matching how a team would normally view their model) for v1; note as a caveat-worthy nuance if the spike reveals surprising exclusions, but not a blocker.

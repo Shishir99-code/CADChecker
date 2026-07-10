@@ -140,69 +140,91 @@ async function main(): Promise<void> {
   console.log(`definition.parts[] length: ${parts.length}`);
   console.log(`rootAssembly.occurrences[] length: ${occurrences.length}`);
 
-  // Pick a FRAME_-tagged part if one exists in this document's part metadata,
-  // falling back to any part with a clear off-origin occurrence transform.
-  let framePartId: string | undefined = explicitFramePartId;
+  // Link part -> placement through the INSTANCE map. occurrences[].path holds
+  // *instance* ids (not part ids), so the leaf id must be resolved via
+  // rootAssembly.instances / subAssemblies[].instances to recover the partId.
+  // (The earlier `path.last === partId` match was a bug -- those ids never
+  // coincide, so the A1/A3 transform comparison was always skipped.)
+  // For the A1/A3 coordinate-frame test we specifically want an OFF-ORIGIN part
+  // so a transform mistake is numerically obvious rather than masked at origin.
+  type Inst = {
+    id?: string;
+    partId?: string;
+    elementId?: string;
+    documentId?: string;
+    configuration?: string;
+    type?: string;
+  };
+  const rootInstances =
+    ((definition as { rootAssembly?: { instances?: Inst[] } }).rootAssembly?.instances ?? []) as Inst[];
+  const subAssemblies =
+    ((definition as { subAssemblies?: Array<{ instances?: Inst[] }> }).subAssemblies ?? []);
+  const instMap = new Map<string, Inst>();
+  for (const i of rootInstances) if (i.id) instMap.set(i.id, i);
+  for (const sa of subAssemblies) for (const i of sa.instances ?? []) if (i.id) instMap.set(i.id, i);
+  console.log(`instances (root+sub) indexed: ${instMap.size}`);
+
+  const offOrigin = (m?: number[]): boolean =>
+    !!m && (Math.abs(m[3] ?? 0) > 1e-6 || Math.abs(m[7] ?? 0) > 1e-6 || Math.abs(m[11] ?? 0) > 1e-6);
+
+  let framePartId: string | undefined;
   let frameElementId: string | undefined;
   let frameDocumentId: string | undefined;
   let frameConfiguration: string | undefined;
+  let transform: number[] | undefined;
 
-  if (!framePartId) {
-    for (const p of parts) {
-      const pid = p.partId as string | undefined;
-      const pElementId = p.elementId as string | undefined;
-      const pDocumentId = (p.documentId as string | undefined) ?? documentId;
-      if (!pid || !pElementId) continue;
-      try {
-        const metadata = await client.getPartsMetadata(pDocumentId, "w", workspaceId, pElementId);
-        const meta = metadata.find((m) => m.partId === pid);
-        const name = (meta as { name?: string } | undefined)?.name ?? "";
-        if (name.startsWith("FRAME_")) {
-          framePartId = pid;
-          frameElementId = pElementId;
-          frameDocumentId = pDocumentId;
-          frameConfiguration = p.configuration as string | undefined;
-          console.log(`Found FRAME_-tagged part: partId=${pid} name=${name} elementId=${pElementId}`);
-          break;
-        }
-      } catch (e) {
-        console.log(`  (could not read metadata for partId=${pid}: ${(e as Error).message})`);
-      }
-    }
+  // Pass 1: honor an explicit SPIKE_FRAME_PART_ID, else take the first
+  // OFF-origin Part occurrence (the strongest A1/A3 test).
+  for (const o of occurrences) {
+    const leaf = o.path?.[o.path.length - 1];
+    if (!leaf) continue;
+    const inst = instMap.get(leaf);
+    if (!inst?.partId || !inst.elementId) continue;
+    if (inst.type && inst.type !== "Part") continue;
+    if (explicitFramePartId && inst.partId !== explicitFramePartId) continue;
+    if (!explicitFramePartId && !offOrigin(o.transform)) continue;
+    framePartId = inst.partId;
+    frameElementId = inst.elementId;
+    frameDocumentId = inst.documentId ?? documentId;
+    frameConfiguration = inst.configuration;
+    transform = o.transform;
+    break;
   }
 
+  // Pass 2: last resort -- any resolvable Part occurrence (may be at origin;
+  // A1/A3 test then weaker but still runs).
   if (!framePartId) {
-    // Fall back to the first part with a clear off-origin transform.
-    const first = parts[0];
-    if (first) {
-      framePartId = first.partId as string | undefined;
-      frameElementId = first.elementId as string | undefined;
-      frameDocumentId = (first.documentId as string | undefined) ?? documentId;
-      frameConfiguration = first.configuration as string | undefined;
+    for (const o of occurrences) {
+      const leaf = o.path?.[o.path.length - 1];
+      const inst = leaf ? instMap.get(leaf) : undefined;
+      if (!inst?.partId || !inst.elementId) continue;
+      if (inst.type && inst.type !== "Part") continue;
+      framePartId = inst.partId;
+      frameElementId = inst.elementId;
+      frameDocumentId = inst.documentId ?? documentId;
+      frameConfiguration = inst.configuration;
+      transform = o.transform;
       console.warn(
-        `WARNING: No FRAME_-tagged part found -- falling back to first part in definition.parts[] ` +
-          `(partId=${framePartId}). Results are still useful for confirming the coordinate frame, ` +
-          `but re-run against a properly tagged document before finalizing the contract.`,
+        "WARNING: no OFF-origin part occurrence found -- using an at-origin part. " +
+          "A1/A3 confirmation will be weak; prefer a document with an off-origin FRAME_ part.",
       );
+      break;
     }
   }
 
   if (!framePartId || !frameElementId || !frameDocumentId) {
-    console.error("Could not identify any part to test against. Aborting.");
+    console.error("Could not identify any Part occurrence to test against. Aborting.");
     process.exit(1);
   }
 
-  // Find this part's occurrence transform (RESEARCH: occurrences[].transform
-  // is already-absolute/world-space, per official Onshape docs).
-  const occurrence = occurrences.find((o) => o.path?.[o.path.length - 1] === framePartId);
-  const transform = occurrence?.transform;
-  if (!transform) {
+  if (transform) {
+    console.log(`Chosen part: partId=${framePartId} elementId=${frameElementId}`);
+    console.log(`Occurrence transform (16 elements): ${JSON.stringify(transform)}`);
+  } else {
     console.warn(
-      "WARNING: could not find a matching occurrence transform for this part -- " +
+      "WARNING: chosen part occurrence has no transform array -- " +
         "the A1 world-space comparison below will be skipped.",
     );
-  } else {
-    console.log(`Occurrence transform (16 elements): ${JSON.stringify(transform)}`);
   }
 
   console.log(`\n=== 2. Per-part bounding box (getBoundingBoxes) for partId=${framePartId} ===`);
