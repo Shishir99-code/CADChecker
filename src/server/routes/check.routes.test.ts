@@ -29,41 +29,80 @@ function stubElements() {
 
 /**
  * Assembly definition stub covering the three merge cases (F1/F2/F3):
- * (a) inst-1: same-document part with a real mass and a material.
- * (b) inst-2: same-document part with NO material -- and, mirroring F1,
- *     omitted from the mass `bodies` map entirely (not mass: 0).
- * (c) inst-3: referenced-document part (different documentId, with a
- *     populated documentVersion) whose mass/material calls 403.
+ * (a) occ-frame-1 (CAD partId "JHD"): same-document part with a real mass
+ *     and a material.
+ * (b) occ-mech-1 (CAD partId "GBX"): same-document part with NO material --
+ *     and, mirroring F1, omitted from the mass `bodies` map entirely (not
+ *     mass: 0).
+ * (c) occ-ref-1 (CAD partId "REF"): referenced-document part (different
+ *     documentId, with a populated documentVersion) whose mass/material
+ *     calls 403.
+ *
+ * Instance ids (the occurrence-path leaves) are DELIBERATELY DISTINCT from
+ * CAD partIds (WR-02 / CR-01 guard) -- real Onshape Part instances carry
+ * both and they are almost never equal on a real document. Proving the 5b/5c
+ * joins resolve through `instance.partId` (not id-aliasing coincidence) is
+ * the whole point of this fixture shape.
  */
 function stubAssemblyDefinition() {
   return {
     rootAssembly: {
       instances: [
-        { id: "inst-1", name: "FRAME_rail" },
-        { id: "inst-2", name: "MECH_gearbox" },
-        { id: "inst-3", name: "MECH_referenced_part" },
+        { id: "occ-frame-1", name: "FRAME_rail", type: "Part", partId: "JHD" },
+        { id: "occ-mech-1", name: "MECH_gearbox", type: "Part", partId: "GBX" },
+        { id: "occ-ref-1", name: "MECH_referenced_part", type: "Part", partId: "REF" },
       ],
       occurrences: [
-        // inst-1 (FRAME_rail) carries a non-trivial translation so the 5c
-        // enrichment test below can confirm transformPoint is actually
+        // occ-frame-1 (FRAME_rail) carries a non-trivial translation so the
+        // 5c enrichment test below can confirm transformPoint is actually
         // applied to its bounding-box corners (03-BOUNDING-BOX-CONTRACT.md
         // A1/A3), not just passed through untransformed.
-        { path: ["inst-1"], transform: [1, 0, 0, 10, 0, 1, 0, 20, 0, 0, 1, 30, 0, 0, 0, 1] },
-        { path: ["inst-2"], transform: new Array(16).fill(0) },
-        { path: ["inst-3"], transform: new Array(16).fill(0) },
+        { path: ["occ-frame-1"], transform: [1, 0, 0, 10, 0, 1, 0, 20, 0, 0, 1, 30, 0, 0, 0, 1] },
+        { path: ["occ-mech-1"], transform: new Array(16).fill(0) },
+        { path: ["occ-ref-1"], transform: new Array(16).fill(0) },
       ],
     },
     subAssemblies: [],
     parts: [
-      { documentId: "doc-1", elementId: SAME_DOC_ELEMENT_ID, partId: "inst-1" },
-      { documentId: "doc-1", elementId: SAME_DOC_ELEMENT_ID, partId: "inst-2" },
+      { documentId: "doc-1", elementId: SAME_DOC_ELEMENT_ID, partId: "JHD" },
+      { documentId: "doc-1", elementId: SAME_DOC_ELEMENT_ID, partId: "GBX" },
       {
         documentId: REF_DOC_ID,
         elementId: REF_DOC_ELEMENT_ID,
-        partId: "inst-3",
+        partId: "REF",
         documentVersion: REF_DOC_VERSION,
       },
     ],
+  };
+}
+
+/**
+ * A single CAD part ("BRK", a FRAME_ bracket) placed at TWO occurrences with
+ * different transforms -- occ-brk-a at the identity transform, occ-brk-b
+ * translated +100 in X. `parts[]` is deduplicated per unique CAD partId
+ * (mirrors real `definition.parts[]` shape) -- a single "BRK" entry serves
+ * both occurrences.
+ *
+ * CR-02 guard: under the pre-fix per-partId collapse (`frameFactsById` /
+ * `bboxByPartId` keyed by partId alone), both occurrences would receive the
+ * IDENTICAL last-processed occurrence's transformed corners -- silently
+ * dropping one placement's footprint from the hull. This fixture proves
+ * each occurrence keeps its own transformed corners.
+ */
+function stubTwoOccurrenceAssembly() {
+  return {
+    rootAssembly: {
+      instances: [
+        { id: "occ-brk-a", name: "FRAME_bracket", type: "Part", partId: "BRK" },
+        { id: "occ-brk-b", name: "FRAME_bracket", type: "Part", partId: "BRK" },
+      ],
+      occurrences: [
+        { path: ["occ-brk-a"], transform: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] },
+        { path: ["occ-brk-b"], transform: [1, 0, 0, 100, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] },
+      ],
+    },
+    subAssemblies: [],
+    parts: [{ documentId: "doc-1", elementId: SAME_DOC_ELEMENT_ID, partId: "BRK" }],
   };
 }
 
@@ -71,9 +110,9 @@ function stubAssemblyDefinition() {
 function stubGetPartStudioMassProperties() {
   return vi.fn(async (documentId: string) => {
     if (documentId === "doc-1") {
-      // inst-1 has a real mass; inst-2 is omitted from `bodies` entirely
+      // "JHD" has a real mass; "GBX" is omitted from `bodies` entirely
       // (F1: unmaterialized parts are omitted, not mass: 0).
-      return { bodies: { "inst-1": { mass: [2.9, 2.9, 2.9] } } };
+      return { bodies: { JHD: { mass: [2.9, 2.9, 2.9] } } };
     }
     if (documentId === REF_DOC_ID) {
       throw new OnshapeApiError(403, "Forbidden -- other-owner referenced document unreadable");
@@ -87,8 +126,8 @@ function stubGetPartsMetadata() {
   return vi.fn(async (documentId: string) => {
     if (documentId === "doc-1") {
       return [
-        { partId: "inst-1", material: { displayName: "Aluminum" } },
-        { partId: "inst-2" }, // material absent -- unmaterialized
+        { partId: "JHD", material: { displayName: "Aluminum" } },
+        { partId: "GBX" }, // material absent -- unmaterialized
       ];
     }
     if (documentId === REF_DOC_ID) {
@@ -98,7 +137,7 @@ function stubGetPartsMetadata() {
   });
 }
 
-/** Fake getBoundingBoxes -- only the FRAME_-tagged part (inst-1) is ever
+/** Fake getBoundingBoxes -- only the FRAME_-tagged part ("JHD") is ever
  * expected to be requested; returns a 1m unit-cube LOCAL box. */
 function stubGetBoundingBoxes() {
   return vi.fn(async () => ({ lowX: 0, lowY: 0, lowZ: 0, highX: 1, highY: 1, highZ: 1 }));
@@ -230,17 +269,22 @@ describe("POST /api/check", () => {
     const enrichedFacts = runAllSpy.mock.calls[0]?.[0] as Fact[];
     const byPartId = new Map(enrichedFacts.map((f) => [f.partId, f]));
 
-    // (a) same-document part with a real mass and a material.
-    expect(byPartId.get("inst-1")?.massKg).toBe(2.9);
-    expect(byPartId.get("inst-1")?.materialAssigned).toBe(true);
+    // These assertions resolve through instance.partId (Task 1's fix), NOT
+    // id-aliasing coincidence -- they FAIL against pre-Task-1 code, where
+    // Fact.partId would be the leaf instance id ("occ-frame-1" etc.), never
+    // matching these CAD partId keys (CR-01 / WR-02 guard).
 
-    // (b) same-document part with NO material -- and no mass entry (F1).
-    expect(byPartId.get("inst-2")?.massKg).toBeUndefined();
-    expect(byPartId.get("inst-2")?.materialAssigned).toBe(false);
+    // (a) same-document part ("JHD") with a real mass and a material.
+    expect(byPartId.get("JHD")?.massKg).toBe(2.9);
+    expect(byPartId.get("JHD")?.materialAssigned).toBe(true);
 
-    // (c) referenced-document part that 403'd -- UNRESOLVED, never 0/false.
-    expect(byPartId.get("inst-3")?.massKg).toBeUndefined();
-    expect(byPartId.get("inst-3")?.materialAssigned).toBeUndefined();
+    // (b) same-document part ("GBX") with NO material -- and no mass entry (F1).
+    expect(byPartId.get("GBX")?.massKg).toBeUndefined();
+    expect(byPartId.get("GBX")?.materialAssigned).toBe(false);
+
+    // (c) referenced-document part ("REF") that 403'd -- UNRESOLVED, never 0/false.
+    expect(byPartId.get("REF")?.massKg).toBeUndefined();
+    expect(byPartId.get("REF")?.materialAssigned).toBeUndefined();
 
     // Per-group wvm selection: "w" for the same-document group (server-derived
     // ids), "v" (with the referenced part's documentVersion) for the
@@ -250,7 +294,7 @@ describe("POST /api/check", () => {
       "w",
       "ws-1",
       SAME_DOC_ELEMENT_ID,
-      expect.arrayContaining(["inst-1", "inst-2"]),
+      expect.arrayContaining(["JHD", "GBX"]),
       undefined,
     );
     expect(getPartStudioMassProperties).toHaveBeenCalledWith(
@@ -258,7 +302,7 @@ describe("POST /api/check", () => {
       "v",
       REF_DOC_VERSION,
       REF_DOC_ELEMENT_ID,
-      ["inst-3"],
+      ["REF"],
       undefined,
     );
     expect(getPartsMetadata).toHaveBeenCalledWith("doc-1", "w", "ws-1", SAME_DOC_ELEMENT_ID);
@@ -293,7 +337,7 @@ describe("POST /api/check", () => {
     const enrichedFacts = runAllSpy.mock.calls[0]?.[0] as Fact[];
     const byPartId = new Map(enrichedFacts.map((f) => [f.partId, f]));
 
-    // Only inst-1 (FRAME_rail) is FRAME_-tagged -- getBoundingBoxes is
+    // Only "JHD" (FRAME_rail) is FRAME_-tagged -- getBoundingBoxes is
     // called exactly for it, addressed via the same server-derived
     // documentId/wvm/wvmid/elementId as the 5b mass fetch.
     expect(getBoundingBoxes).toHaveBeenCalledTimes(1);
@@ -302,7 +346,7 @@ describe("POST /api/check", () => {
       "w",
       "ws-1",
       SAME_DOC_ELEMENT_ID,
-      "inst-1",
+      "JHD",
       undefined,
     );
 
@@ -310,7 +354,7 @@ describe("POST /api/check", () => {
     // to the LOCAL 1m unit-cube box -- corners land at X/Y/Z in [10,11],
     // [20,21], [30,31] respectively, never the raw untransformed [0,1] range
     // (A1/A3).
-    const frameCorners = byPartId.get("inst-1")?.bboxCornersWorld;
+    const frameCorners = byPartId.get("JHD")?.bboxCornersWorld;
     expect(frameCorners).toHaveLength(8);
     for (const [x, y, z] of frameCorners ?? []) {
       expect(x).toBeGreaterThanOrEqual(10);
@@ -321,10 +365,10 @@ describe("POST /api/check", () => {
       expect(z).toBeLessThanOrEqual(31);
     }
 
-    // Non-FRAME_ facts (inst-2, inst-3) never get a bboxCornersWorld entry --
+    // Non-FRAME_ facts ("GBX", "REF") never get a bboxCornersWorld entry --
     // getBoundingBoxes is never called for them.
-    expect(byPartId.get("inst-2")?.bboxCornersWorld).toBeUndefined();
-    expect(byPartId.get("inst-3")?.bboxCornersWorld).toBeUndefined();
+    expect(byPartId.get("GBX")?.bboxCornersWorld).toBeUndefined();
+    expect(byPartId.get("REF")?.bboxCornersWorld).toBeUndefined();
 
     // The unit-cube's 8 corners floor-project to exactly 4 unique XY points
     // (a 1m x 1m square) -- perimeter ~157.48in exceeds the 110in R101
@@ -345,6 +389,93 @@ describe("POST /api/check", () => {
     expect(perimeterVerdict.rule).toBe("R101");
     expect(perimeterVerdict.status).toBe("FAIL");
     expect(perimeterVerdict.geometry?.hullVertices).toHaveLength(4);
+
+    runAllSpy.mockRestore();
+  });
+
+  it("hull includes EVERY occurrence of a reused FRAME_ part (CR-02 guard)", async () => {
+    const getElementsInDocument = vi.fn().mockResolvedValue(stubElements());
+    const getAssemblyDefinition = vi.fn().mockResolvedValue(stubTwoOccurrenceAssembly());
+    // Minimal 5b stubs (empty bodies/[]) so the mass/material loop does not
+    // error -- this test is about 5c occurrence keying, not 5b.
+    const getPartStudioMassProperties = vi.fn(async () => ({ bodies: {} }));
+    const getPartsMetadata = vi.fn(async () => []);
+    const getBoundingBoxes = vi.fn(async () => ({
+      lowX: 0,
+      lowY: 0,
+      lowZ: 0,
+      highX: 1,
+      highY: 1,
+      highZ: 1,
+    }));
+
+    const runAllSpy = vi.spyOn(CheckEngine.prototype, "runAll");
+
+    const app = buildTestApp({
+      getElementsInDocument,
+      getAssemblyDefinition,
+      getPartStudioMassProperties,
+      getPartsMetadata,
+      getBoundingBoxes,
+    });
+
+    const res = await request(app)
+      .post("/api/check")
+      .send({ documentId: "doc-1", workspaceId: "ws-1" });
+
+    expect(res.status).toBe(200);
+
+    const enrichedFacts = runAllSpy.mock.calls[0]?.[0] as Fact[];
+    const frameFacts = enrichedFacts.filter((f) => f.name === "FRAME_bracket");
+
+    // (a) exactly two FRAME_bracket facts (one per occurrence).
+    expect(frameFacts).toHaveLength(2);
+
+    // (b) the LOCAL box is part-invariant -- fetched exactly ONCE for "BRK",
+    // never once per occurrence. Under the pre-fix per-partId collapse this
+    // assertion would still hold (the bug is in the transform-application
+    // keying, not the fetch), but the (c) assertion below fails pre-fix.
+    expect(getBoundingBoxes).toHaveBeenCalledTimes(1);
+    expect(getBoundingBoxes).toHaveBeenCalledWith(
+      "doc-1",
+      "w",
+      "ws-1",
+      SAME_DOC_ELEMENT_ID,
+      "BRK",
+      undefined,
+    );
+
+    // (c) CR-02 guard: each occurrence keeps its OWN transformed corners.
+    // occ-brk-a (identity transform) -> X in [0,1]; occ-brk-b (+100 in X)
+    // -> X in [100,101]. Under the pre-fix per-partId collapse
+    // (`bboxByPartId` keyed by partId alone, last-occurrence-wins), BOTH
+    // facts would receive the SAME transformed corners (whichever occurrence
+    // was processed last) -- this assertion fails before Task 2 and passes
+    // after it.
+    const occA = frameFacts.find((f) => f.path.join("/") === "occ-brk-a");
+    const occB = frameFacts.find((f) => f.path.join("/") === "occ-brk-b");
+    expect(occA?.bboxCornersWorld).toHaveLength(8);
+    expect(occB?.bboxCornersWorld).toHaveLength(8);
+    for (const [x] of occA?.bboxCornersWorld ?? []) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(1);
+    }
+    for (const [x] of occB?.bboxCornersWorld ?? []) {
+      expect(x).toBeGreaterThanOrEqual(100);
+      expect(x).toBeLessThanOrEqual(101);
+    }
+
+    // (d) the perimeter verdict's hull spans BOTH occurrence footprints --
+    // X-extent runs from ~0 to ~101, well beyond a single 1m box. Under the
+    // pre-fix collapse, the hull would only ever span one box's worth of X
+    // (~0..1 or ~100..101, never both).
+    const perimeterVerdict = res.body.verdicts.find((v: { geometry?: unknown }) => v.geometry);
+    expect(perimeterVerdict).toBeDefined();
+    const hullXs = (perimeterVerdict.geometry?.hullVertices as Array<[number, number]>).map(
+      ([x]) => x,
+    );
+    expect(Math.min(...hullXs)).toBeCloseTo(0, 1);
+    expect(Math.max(...hullXs)).toBeCloseTo(101, 1);
 
     runAllSpy.mockRestore();
   });
