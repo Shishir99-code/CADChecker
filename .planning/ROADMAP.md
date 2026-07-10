@@ -98,7 +98,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Frame perimeter slice: pure geometry utils + 5c per-part FRAME_ bbox enrichment + gated framePerimeterCheck + inline SVG HullRender (GEOM-01, GEOM-02)
+- [x] 03-02-PLAN.md — Frame perimeter slice: pure geometry utils + 5c per-part FRAME_ bbox enrichment + gated framePerimeterCheck + inline SVG HullRender (GEOM-01, GEOM-02)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -133,5 +133,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
 | 2. Trustworthy Weight | 3/3 | Complete    | 2026-07-09 |
-| 3. Frame Perimeter & Height | 1/3 | In Progress|  |
+| 3. Frame Perimeter & Height | 2/3 | In Progress|  |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |

@@ -32,7 +32,7 @@ Requirements for the initial release — the smallest end-to-end useful slice. E
 ### Geometry Checks
 
 - [x] **GEOM-01**: User sees a robot/frame perimeter check computed as the 2D convex hull of the floor-plane projection of `FRAME_`-tagged parts, compared against the season limit (R101/R104)
-- [ ] **GEOM-02**: The computed hull is rendered visually so the team can sanity-check what was measured, and the check discloses which configuration was measured
+- [x] **GEOM-02**: The computed hull is rendered visually so the team can sanity-check what was measured, and the check discloses which configuration was measured
 - [x] **GEOM-03**: User sees a starting-configuration height check against the season limit (R104/R107), disclosing which configuration was measured
 
 ### Results Panel
@@ -97,7 +97,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | WGHT-03 | Phase 2 | Complete |
 | WGHT-04 | Phase 2 | Complete |
 | GEOM-01 | Phase 3 | Complete |
-| GEOM-02 | Phase 3 | Pending |
+| GEOM-02 | Phase 3 | Complete |
 | GEOM-03 | Phase 3 | Complete |
 | RSLT-01 | Phase 4 | Pending |
 | RSLT-02 | Phase 4 | Pending |
