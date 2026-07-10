@@ -1,189 +1,190 @@
 ---
 phase: 03-frame-perimeter-height
-reviewed: 2026-07-10T14:28:13Z
+reviewed: 2026-07-10T12:00:00Z
 depth: standard
-files_reviewed: 15
+files_reviewed: 4
 files_reviewed_list:
-  - src/server/onshape-client/client.ts
-  - src/server/geometry/transform-point.ts
-  - src/server/geometry/transform-point.test.ts
-  - src/server/geometry/convex-hull.ts
-  - src/server/geometry/convex-hull.test.ts
-  - src/server/checks/frame-perimeter.check.ts
-  - src/server/checks/frame-perimeter.check.test.ts
-  - src/server/checks/starting-height.check.ts
-  - src/server/checks/starting-height.check.test.ts
-  - src/server/checks/engine.ts
-  - src/server/traversal/facts.ts
+  - src/server/traversal/flatten-assembly.ts
+  - src/server/traversal/flatten-assembly.test.ts
   - src/server/routes/check.routes.ts
   - src/server/routes/check.routes.test.ts
-  - src/panel/api.ts
-  - src/panel/components/HullRender.tsx
-  - src/panel/main.tsx
-  - rules/2026.json
-  - package.json
 findings:
-  critical: 2
-  warning: 3
-  info: 3
-  total: 8
+  critical: 0
+  warning: 2
+  info: 2
+  total: 4
 status: issues_found
 ---
 
-# Phase 03: Code Review Report
+# Phase 03: Code Review Report (Gap Closure 03-04 — CR-01/CR-02)
 
-**Reviewed:** 2026-07-10T14:28:13Z
+**Reviewed:** 2026-07-10T12:00:00Z
 **Depth:** standard
-**Files Reviewed:** 15 (+ related root-cause file `src/server/traversal/flatten-assembly.ts`, read as a called dependency of `check.routes.ts`'s 5c block, not itself in the Phase 03 change list)
+**Files Reviewed:** 4
 **Status:** issues_found
 
 ## Summary
 
-The pure geometry utilities (`transform-point.ts`, `convex-hull.ts`) are correct and well tested against the live-verified `03-BOUNDING-BOX-CONTRACT.md`: the row-major transform (indices 3/7/11) is applied verbatim, `M_TO_IN` is applied exactly once at each conversion boundary, and both `frame-perimeter.check.ts` and `starting-height.check.ts` faithfully implement the G4 "never default an absent field to 0" discipline with distinct, well-labeled UNKNOWN branches.
+This review covers gap-closure plan 03-04, which was meant to fix two Critical
+defects (CR-01: broken instance-id → CAD-partId join; CR-02: occurrence
+collapse in the 5c FRAME_ bbox enrichment) found in the original phase 03
+review. I traced both fixes against `03-BOUNDING-BOX-CONTRACT.md`'s G1
+guidance (live-verified against a real 81-instance Onshape document), read
+every consuming check (`frame-perimeter.check.ts`, `robot-weight.check.ts`,
+`material-audit.check.ts`, `engine.ts`), and ran the test suite and
+`tsc --noEmit` locally to confirm the claimed green state.
 
-However, tracing the occurrence → part join that `check.routes.ts`'s new 5c block depends on (per this review's explicit focus) surfaces two compounding **Critical** defects that mean `framePerimeterCheck` (R101) cannot produce a trustworthy PASS/FAIL verdict against a real, multi-instance Onshape document today, and would remain unsafe (capable of a false PASS) even after the first defect is patched. Both defects are masked by the current test suite because its fixtures alias instance ids and CAD part ids to the same literal string, so the enrichment "succeeds" in tests while failing in the exact way the join is used in production. A handful of lower-severity hardening and dead-code items round out the findings.
+**Both CR-01 and CR-02 are correctly and completely fixed as scoped.**
 
-## Critical Issues
+- CR-01: `flattenAssembly` now resolves `instance?.partId ?? leafId`, matching
+  the live-verified G1 contract exactly. The fallback to `leafId` is safe
+  (no-throw) and, combined with the route's `groups`-derived CAD-partId keys,
+  the 5b/5c joins now genuinely match on real documents where instance id !=
+  CAD partId. I confirmed this also un-breaks the pre-existing 5b mass/
+  material join for `robotWeightCheck`/`materialAuditCheck` as a side effect
+  (previously *always* UNKNOWN regardless of document content — see the
+  prior review's CR-01 note that this bug also affected Phase 2's weight
+  checks).
+- CR-02: the split into `localCornersByPartId` (fetched once per unique
+  partId, cached LOCAL corners) + `bboxByOccurrence` (per-occurrence
+  transform, keyed by `fact.path.join("/")`) correctly gives every occurrence
+  of a reused `FRAME_` part its own transformed footprint. I traced the new
+  `stubTwoOccurrenceAssembly()` test end to end and it genuinely exercises
+  the fix (fails against the pre-fix `bboxByPartId`-keyed code, per the
+  described mechanics).
+- `frame-perimeter.check.ts`'s per-occurrence UNKNOWN gating (any FRAME_ fact
+  with `bboxCornersWorld === undefined`) correctly consumes the new
+  one-Fact-per-occurrence enrichment shape without modification.
+- `npx vitest run` (both files) and `npx tsc -p tsconfig.server.json --noEmit`
+  both pass cleanly in this environment, matching the plan's claimed state.
 
-### CR-01: `Fact.partId` is actually the occurrence's INSTANCE id, not a CAD part id, breaking the 5c/5b partId join in production
-
-**File:** `src/server/traversal/flatten-assembly.ts:83-97` (root cause; consumed by `src/server/routes/check.routes.ts:190-272` — the 5c FRAME_ bbox join this review was asked to verify)
-
-**Issue:** `03-BOUNDING-BOX-CONTRACT.md` (G1, live-verified 2026-07-10, ground truth for this phase) states explicitly:
-
-> `rootAssembly.occurrences[].path[]` holds **instance ids**, NOT part ids... For each occurrence, resolve `path[path.length − 1]` (the leaf instance id) via [an instance] map to recover its `partId`.
-
-`flattenAssembly()` does not do this resolution. It assigns the occurrence's leaf path id directly as the Fact's `partId`:
-
-```ts
-return def.rootAssembly.occurrences.map((occ): Fact => {
-  const leafId = occ.path[occ.path.length - 1] ?? "";
-  const instance = instanceById.get(leafId);
-  return {
-    partId: leafId,          // <-- this is the INSTANCE id, not a CAD partId
-    name: instance?.name ?? UNKNOWN_NAME,
-    transform: occ.transform,
-    path: occ.path,
-  };
-});
-```
-
-Its local `InstanceInfo` type doesn't even carry a `partId` field to resolve to (`{ id, name, type?, suppressed? }`), and the real Onshape schema (`BTAssemblyInstanceInfo` in `src/server/onshape-client/types/onshape.d.ts:3015-3027`) has no `partId` field either — only `definition.parts[]` (`BTAssemblyPartsInfo`) carries the real `partId`.
-
-`check.routes.ts`'s 5c block (and the pre-existing 5b block) builds its per-part maps keyed by the REAL CAD `partId` sourced from `groups` (`definition.parts[]`):
-
-```ts
-const framePartIds = parts.map((p) => p.partId).filter((id) => frameFactsById.has(id));
-```
-
-but `frameFactsById` is keyed by `Fact.partId`, which — per the bug above — actually holds instance ids. In any real Onshape document where an occurrence's instance id differs from its part's CAD `partId` (the normal case, per the contract), this `.has(id)` check will never match, `framePartIds` will always be empty, `bboxByPartId` stays empty, and **every** FRAME_-tagged fact ends up with `bboxCornersWorld: undefined` — so `framePerimeterCheck` always falls into its "unresolved" UNKNOWN branch, regardless of how correctly the document is tagged. The R101 perimeter check is non-functional end-to-end against a real document.
-
-This is masked in `check.routes.test.ts`'s fixture (`stubAssemblyDefinition()`), which uses the literal string `"inst-1"` as **both** the instance `id` and the `partId` in `parts[]` — the two id spaces are accidentally identical in the test, so the join "works" in the test suite while remaining broken in production. (Same underlying `Fact.partId` field is also relied on by the pre-existing 5b mass/material join — this finding likely also affects Phase 2's weight checks, though that is outside this phase's scope to fix.)
-
-**Fix:** Resolve the true CAD `partId` when building `Fact` in `flattenAssembly()`, matching the contract's G1 guidance exactly — e.g. carry `definition.parts[]` into the join (or, if Onshape truly has no direct instance→partId field in the assembly definition response, build the correlation via `documentId:elementId:configuration` context the way `groupPartsByElement` already does) — then update `check.routes.test.ts`'s fixtures to use **deliberately different** instance-id and part-id strings so this class of bug cannot be silently reintroduced.
-
----
-
-### CR-02: 5c's `Map<partId, corners>` enrichment collapses multiple occurrences of the same FRAME_ part to a single position — risks a false PASS
-
-**File:** `src/server/routes/check.routes.ts:190-259`
-
-**Issue:** Per `03-BOUNDING-BOX-CONTRACT.md` G1:
-
-> A `FRAME_` part placed N times yields N occurrences, each with its own transform — the perimeter hull must include the transformed corners of **every** occurrence, not just one.
-
-The 5c enrichment block, however, keys everything by `partId` alone:
-
-```ts
-const frameFactsById = new Map(
-  facts.filter((f) => f.name.startsWith("FRAME_")).map((f) => [f.partId, f]),
-);
-const bboxByPartId = new Map<string, Array<[number, number, number]>>();
-...
-framePartIds.forEach((partId, i) => {
-  const box = boxes[i];
-  const fact = frameFactsById.get(partId);   // only ONE fact survives per partId
-  ...
-  bboxByPartId.set(partId, corners.map((corner) => transformPoint(fact.transform, corner)));
-});
-...
-bboxCornersWorld: bboxByPartId.get(f.partId),   // every occurrence of that partId reads the SAME entry
-```
-
-`new Map(...)` construction keeps only the **last** `[partId, Fact]` pair for a given key — so if the same CAD part (e.g. a `FRAME_bracket` used at all four corners of the frame) appears as multiple occurrences sharing one `partId` (which is exactly what will happen once CR-01 is fixed and the join actually succeeds), only ONE occurrence's `transform` is ever applied. `bboxByPartId` then stores a single transformed-corner set for that `partId`, and **every** occurrence sharing that `partId` — including the three others placed elsewhere on the robot — is enriched with the identical transformed corners in the final `enrichedFacts.map()`.
-
-The resulting hull will only ever include the footprint contributed by whichever occurrence happened to be iterated last, silently omitting the other N-1 real-world positions of that tagged part from the perimeter calculation. This directly risks an undersized measured perimeter — a **false PASS** — for the common FRC drivetrain topology of one bracket/rail part reused at multiple frame locations. This is the exact failure mode (D-02 "never a false PASS") this phase's own design guidance was written to prevent.
-
-**Fix:** Key the per-occurrence enrichment by something unique per occurrence (e.g. the occurrence's `path.join("/")`, or an index), not by `partId` alone. `getBoundingBoxes`'s LOCAL box result can still be cached/fetched once per unique `partId` (it's legitimately part-invariant), but the **transform application and resulting `bboxCornersWorld` must be computed and stored per occurrence**, and `frame-perimeter.check.ts` must consume all resulting per-occurrence corner sets, not one entry per tagged part. Add a `check.routes.test.ts` fixture with the same `partId` appearing at two occurrences with different transforms, and assert the resulting hull includes points from both.
+No Critical issues found in the 03-04 diff itself. Two Warnings describe
+residual/inherited correctness risk not fully closed by this gap-closure
+(worth tracking, not blocking), and two Info items are documentation-accuracy
+nits.
 
 ## Warnings
 
-### WR-01: Client-supplied `documentId`/`workspaceId` are interpolated unencoded into Onshape API URLs in the two new client methods
+### WR-01: `flattenAssembly`'s new fallback branch is only half covered by regression tests
 
-**File:** `src/server/onshape-client/client.ts:251-254, 282-285`
+**File:** `src/server/traversal/flatten-assembly.test.ts:88-93` (covering `src/server/traversal/flatten-assembly.ts:107`)
 
-**Issue:** `getBoundingBoxes` and `getAssemblyBoundingBoxes` build request URLs via raw template-literal interpolation:
+**Issue:** The CR-01 fix introduces `partId: instance?.partId ?? leafId`, which
+has two distinct ways to reach the `leafId` fallback:
+1. `instance` itself is `undefined` (leaf id not found in the merged
+   instance map) — covered by the `"ghost-part-99"` fixture case.
+2. `instance` **is** found, but `instance.partId` is itself `undefined`
+   (e.g. a malformed API response, or a stray non-Part-type instance
+   incorrectly appearing as a path leaf) — **not covered by any test.**
 
+Both arms exercise the same line of production code but are logically
+distinct failure modes, and only one is guarded against regression. A future
+refactor that accidentally changes behavior for case 2 only (e.g.
+`instance?.partId ?? instance?.id ?? leafId`, or a typo that drops the `??`
+short-circuit) would not be caught by the current suite.
+
+**Fix:** Add a fixture instance that has an `id` but no `partId` field (e.g.
+an `Assembly`-type instance mistakenly present at a path leaf, or a
+Part-type instance from a malformed response), and assert the resulting
+Fact still falls back to the leaf id rather than throwing or resolving
+`undefined`:
 ```ts
-const url = new URL(
-  `/api/parts/d/${documentId}/${wvm}/${wvmid}/e/${elementId}/partid/${partId}/boundingboxes`,
-  ONSHAPE_API_BASE_URL,
-);
+{ id: "malformed-leaf", name: "MECH_odd", type: "Part", suppressed: false /* no partId */ }
+// occurrence: { path: ["malformed-leaf"], ... }
+// expect(fact.partId).toBe("malformed-leaf");
 ```
 
-`documentId`/`wvmid` (workspaceId) originate from `req.body`, validated only with `z.string().min(1)` (`check.routes.ts:19-22`) — no format/character validation. A value containing path-navigation sequences (e.g. `../`) could redirect the constructed path to an unintended Onshape API route while still using the authenticated user's own token (bounding the blast radius to what that token can already access, but still a maintainability/defense-in-depth gap). This mirrors the pre-existing idiom in `getAssemblyDefinition`/`getPartStudioMassProperties`/`getPartsMetadata`, so it isn't unique to Phase 03, but the two new methods reproduce it rather than hardening it.
+### WR-02: 5b/5c enrichment maps are keyed by CAD `partId` alone, not `documentId:elementId:partId` — a residual join-collision risk the same class as CR-01
 
-**Fix:** Either validate `documentId`/`workspaceId` against Onshape's known id format (e.g. 24-character hex) in the `CheckRequestSchema` zod schema, or `encodeURIComponent()` each path segment before interpolation, across all client methods (not just the two new ones).
+**File:** `src/server/routes/check.routes.ts:125-126, 200` (`massByPartId`, `materialByPartId`, `localCornersByPartId`)
 
-### WR-02: Test fixtures alias instance ids and CAD part ids, masking the CR-01 class of bug
+**Issue:** This codebase's own `AssemblyPartInfo` doc comment
+(`src/server/traversal/flatten-assembly.ts:43-46`) states `partId`
+uniqueness is guaranteed only "within the same
+`documentId:elementId:configuration` context" — i.e. a CAD `partId` string is
+**not** guaranteed globally unique across different Part Studio elements
+referenced by the same assembly. Despite this, `massByPartId`,
+`materialByPartId` (pre-existing, unchanged by 03-04) and the new
+`localCornersByPartId` (CR-02) are all `Map<string, ...>` keyed by `partId`
+alone, aggregated across **every** group in `groups.values()`:
 
-**File:** `src/server/routes/check.routes.test.ts:41-67`
-
-**Issue:** `stubAssemblyDefinition()` uses the identical string (`"inst-1"`, `"inst-2"`, `"inst-3"`) as both `rootAssembly.instances[].id` and `parts[].partId`. In real Onshape documents these are different id namespaces (see CR-01). Because the fixture conflates them, every test asserting the 5b/5c join "works" is not actually exercising the real-world join logic.
-
-**Fix:** Use deliberately distinct instance-id and part-id strings in the fixture (e.g. `instanceId: "occ-1"` vs `partId: "JHD"`), forcing the route code to perform a genuine id resolution rather than a coincidental match.
-
-### WR-03: `convex-hull.test.ts`'s collinear-points test never asserts the actual result
-
-**File:** `src/server/geometry/convex-hull.test.ts:52-59`
-
-**Issue:**
 ```ts
-it("does not crash on collinear projected points", () => {
+const localCornersByPartId = new Map<string, Array<[number, number, number]>>();
+for (const parts of groups.values()) {
   ...
-  expect(() => floorHull(collinear)).not.toThrow();
-});
+  localCornersByPartId.set(partId, corners); // no documentId/elementId in the key
+}
 ```
-This only proves `floorHull` doesn't throw; it never asserts whether collinear points correctly resolve to `null` (as `d3-polygon`'s `polygonHull` is documented to do for degenerate input) or to some hull value. A regression that silently returned a degenerate 2-point "hull" instead of `null` would pass this test.
 
-**Fix:** Add `expect(floorHull(collinear)).toBeNull();` (or the documented expected behavior) to make the assertion meaningful.
+If two different Part Studio elements referenced by the same assembly happen
+to emit a part with an identical `partId` string (not disallowed by the
+contract's own scoping statement), the second group processed will silently
+overwrite the first group's cached corners (or mass/material) in the shared
+map, and `Fact.partId`-based lookups in `enrichedFacts` will attach the
+**wrong part's geometry/mass** to whichever occurrences share that partId
+string. This is architecturally the same "silent wrong join" failure mode
+CR-01 was written to eliminate — just moved from the instance-id axis to the
+cross-element-partId axis.
+
+This is **not newly introduced** by 03-04 (the partId-only-keyed map pattern
+predates this plan in the 5b block, and 5c's predecessor `bboxByPartId` had
+the identical scoping gap before CR-02 too), so it does not block this
+specific gap-closure. However, `03-04-SUMMARY.md` explicitly claims CR-01
+closes "the permanently-broken 5b/5c enrichment join on any real
+multi-instance Onshape document" — that claim overstates completeness while
+this residual scoping gap is untracked and unaddressed.
+
+**Fix:** Either (a) key these maps by a composite `${documentId}:${elementId}:${partId}` string and change the final `enrichedFacts.map()` lookup to build the same composite key per fact (facts would need to carry `documentId`/`elementId`, which `flattenAssembly` currently does not attach), or (b) if partId is confirmed to be Onshape-document-wide unique in practice (contrary to the doc comment's own scoping statement), update the `AssemblyPartInfo` comment to say so and drop this concern. At minimum, log this as a tracked item in `deferred-items.md` alongside the other out-of-scope findings from this plan.
 
 ## Info
 
-### IN-01: `geometry.framePartFootprints` is rendered but never populated
+### IN-01: `flattenAssembly`'s fallback comment overclaims "can never cause a false-positive downstream join"
 
-**File:** `src/panel/components/HullRender.tsx:72-83`, `src/server/checks/engine.ts:39-42`, `src/server/checks/frame-perimeter.check.ts:100`
+**File:** `src/server/traversal/flatten-assembly.ts:101-107`
 
-**Issue:** `Verdict.geometry`/`CheckReportVerdict.geometry` both declare an optional `framePartFootprints` field, and `HullRender.tsx` renders it (dashed per-part outline polygons) — but `frame-perimeter.check.ts` only ever returns `geometry: { hullVertices: hull }`, never setting `framePartFootprints`. This is currently dead/speculative UI code.
+**Issue:** The comment states:
+> A fallback to the leaf id can never cause a false-positive downstream join: it simply fails to match any real CAD partId and stays UNRESOLVED (CR-01).
 
-**Fix:** Either populate `framePartFootprints` from the per-part corner sets (once CR-02 is fixed and each occurrence's footprint is individually available) or remove the unused field/render branch until it's backed by real data.
+This is true only probabilistically, not absolutely. If an occurrence's
+unresolvable leaf **instance id** string happens to coincide with a genuine,
+different part's **CAD partId** string elsewhere in the same document
+(different id namespaces, but nothing in the code enforces they can't
+collide), the fallback would silently attach that unrelated part's mass,
+material, or bounding box to the wrong occurrence — a real false-positive
+join, just extremely low-probability given Onshape's differing id formats
+(`M182`-style instance ids vs. short alphanumeric partIds like `JHD`).
 
-### IN-02: Pre-existing R101/R103 rule-citation collision (already logged, not new)
+**Fix:** Soften the comment to state the guarantee is probabilistic given
+the two id namespaces' differing formats, not absolute — e.g. "...in
+practice will not match a real CAD partId, since instance ids and CAD
+partIds use distinct formats, though this is not structurally enforced."
 
-**File:** `src/server/checks/occurrence-count.check.ts`, `src/server/checks/frame-tag-presence.check.ts` (not in this phase's file list)
+### IN-02: 5c's comment claims wvm/wvmid derivation is "reused... not re-derived" from 5b, but it is duplicated inline
 
-**Issue:** Confirmed present per `deferred-items.md` — `occurrenceCountCheck`/`frameTagPresenceCheck` cite `config.rules[0]`/`[1]` positionally, colliding with `framePerimeterCheck`'s genuine R101 and `robotWeightCheck`'s genuine R103. All Phase 03 consumers (tests, `HullRender` selection in `main.tsx`) correctly work around this via `geometry`-field selection rather than rule-string matching. No action needed from this review; noted only for completeness since it is directly adjacent to this phase's new R101 verdict.
+**File:** `src/server/routes/check.routes.ts:186-189` (comment), `212-228` (the actual duplicated logic)
 
-### IN-03: `floorHull`'s exact-string dedup key is float-precision-sensitive
+**Issue:** The comment above the 5c block states:
 
-**File:** `src/server/geometry/convex-hull.ts:20-25`
+> Reuses the SAME `groups` map and the SAME wvm/wvmid derivation as 5b (not re-derived)
 
-**Issue:** `` `${x},${y}` `` as a Set key relies on bit-exact floating point equality. Two corners that are conceptually the same world point but arrive via slightly different floating-point paths (e.g. two adjacent occurrences whose transforms should produce coincident corners but differ by float noise) would not dedupe. In practice this is low-impact — `polygonHull` still computes a correct hull with a few extra near-duplicate points — but it's worth a comment noting the limitation, since the docstring implies exact dedup is the primary defense against degenerate "fewer than 3 unique points" inputs.
+`groups` is indeed the same `Map` instance reused from 5b. The wvm/wvmid
+derivation, however, is **not** literally shared code — it's the identical
+`if (groupDocumentId === assemblyDocumentId) {...} else if (first.documentVersion) {...}`
+branch duplicated verbatim in both the 5b loop (lines 138-152) and the 5c
+loop (lines 212-228). This predates 03-04 (the duplication already existed
+between the pre-fix 5b/5c blocks) and wasn't introduced by this diff, but the
+comment's wording ("not re-derived") is misleading about the current code
+structure and could cause a future maintainer to update one copy's logic
+(e.g. adding a new addressing fallback) and forget the other, silently
+diverging the two enrichment paths' addressing behavior.
 
-**Fix:** Optional: round coordinates to a fixed epsilon before keying, or leave as-is with a doc-comment caveat. Not blocking.
+**Fix:** Either extract the wvm/wvmid derivation into a small shared helper
+(e.g. `resolveGroupAddressing(first, assemblyDocumentId, workspaceId)`) used
+by both 5b and 5c, or reword the comment to say the *derivation logic* is
+duplicated-but-identical rather than implying it's a single shared code path.
 
 ---
 
-_Reviewed: 2026-07-10T14:28:13Z_
+_Reviewed: 2026-07-10T12:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
