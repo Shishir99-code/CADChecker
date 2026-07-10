@@ -11,6 +11,16 @@ interface InstanceInfo {
   name: string;
   type?: string;
   suppressed?: boolean;
+  /**
+   * The real CAD partId this instance resolves to (03-BOUNDING-BOX-CONTRACT.md
+   * G1). This is DISTINCT from `id` (the occurrence-path leaf instance id) on
+   * any real Onshape document. Real Onshape Part instances carry `partId` at
+   * runtime, but the generated `BTAssemblyInstanceInfo` .d.ts omits it -- this
+   * minimal structural type declares it explicitly rather than importing the
+   * (incomplete) generated type. Optional because assembly-type instances
+   * (and unresolvable/ghost leaves) never carry one.
+   */
+  partId?: string;
 }
 
 interface OccurrenceInfo {
@@ -88,7 +98,13 @@ export function flattenAssembly(def: AssemblyDefinition): Fact[] {
     const instance = instanceById.get(leafId);
 
     return {
-      partId: leafId,
+      // Resolve the leaf instance id to its real CAD partId (G1) -- fall
+      // back to the raw leaf id ONLY when the instance is missing or carries
+      // no partId (assembly-type / ghost leaves), preserving no-throw
+      // behavior. A fallback to the leaf id can never cause a false-positive
+      // downstream join: it simply fails to match any real CAD partId and
+      // stays UNRESOLVED (CR-01).
+      partId: instance?.partId ?? leafId,
       name: instance?.name ?? UNKNOWN_NAME,
       transform: occ.transform,
       path: occ.path,
