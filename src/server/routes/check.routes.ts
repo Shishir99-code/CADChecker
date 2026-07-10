@@ -10,6 +10,8 @@ import { frameTagPresenceCheck } from "../checks/frame-tag-presence.check.ts";
 import { materialAuditCheck } from "../checks/material-audit.check.ts";
 import { robotWeightCheck } from "../checks/robot-weight.check.ts";
 import { robotBumpersWeightCheck } from "../checks/robot-bumpers-weight.check.ts";
+import { framePerimeterCheck } from "../checks/frame-perimeter.check.ts";
+import { transformPoint } from "../geometry/transform-point.ts";
 
 const CURRENT_SEASON = "2026";
 
@@ -36,6 +38,7 @@ function buildEngine(): CheckEngine {
   engine.register(materialAuditCheck);
   engine.register(robotWeightCheck);
   engine.register(robotBumpersWeightCheck);
+  engine.register(framePerimeterCheck);
   return engine;
 }
 
@@ -175,14 +178,106 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
         }
       }
 
+      // (5c, NEW) Per-part FRAME_-tagged bounding-box fetch, transformed into
+      // world space, merged onto facts BEFORE the engine runs (mirrors 5b's
+      // enrichment-in-route pattern so framePerimeterCheck stays pure/sync).
+      // Reuses the SAME `groups` map and the SAME wvm/wvmid derivation as 5b
+      // (not re-derived) -- every id used below comes from
+      // `definition`/`groups`, never `req.body` (continues T-01-11/CONN-02,
+      // now T-03-03).
+      const frameFactsById = new Map(
+        facts.filter((f) => f.name.startsWith("FRAME_")).map((f) => [f.partId, f]),
+      );
+      const bboxByPartId = new Map<string, Array<[number, number, number]>>();
+
+      for (const parts of groups.values()) {
+        const first = parts[0];
+        if (!first) continue;
+
+        const framePartIds = parts.map((p) => p.partId).filter((id) => frameFactsById.has(id));
+        if (framePartIds.length === 0) continue; // no FRAME_ parts in this group
+
+        const { elementId: groupElementId, configuration } = first;
+        const groupDocumentId = first.documentId;
+
+        let wvm: string;
+        let wvmid: string;
+        if (groupDocumentId === assemblyDocumentId) {
+          wvm = "w";
+          wvmid = workspaceId;
+        } else if (first.documentVersion) {
+          wvm = "v";
+          wvmid = first.documentVersion;
+        } else if (first.documentMicroversion) {
+          wvm = "m";
+          wvmid = first.documentMicroversion;
+        } else {
+          // Referenced document with no addressable version -- same
+          // discipline as 5b: skip the fetch, leave these FRAME_ parts
+          // UNRESOLVED (never a substituted zero-size footprint).
+          continue;
+        }
+
+        try {
+          const boxes = await Promise.all(
+            framePartIds.map((partId) =>
+              client.getBoundingBoxes(groupDocumentId, wvm, wvmid, groupElementId, partId, configuration),
+            ),
+          );
+          framePartIds.forEach((partId, i) => {
+            const box = boxes[i];
+            const fact = frameFactsById.get(partId);
+            if (!box || !fact) return;
+            // G4 (03-BOUNDING-BOX-CONTRACT.md): any absent lowX..highZ field
+            // is UNRESOLVED -- never defaulted to 0 (a 0 would silently
+            // shrink the hull). Leave this part's bboxByPartId entry unset.
+            const { lowX, lowY, lowZ, highX, highY, highZ } = box;
+            if (
+              lowX === undefined ||
+              lowY === undefined ||
+              lowZ === undefined ||
+              highX === undefined ||
+              highY === undefined ||
+              highZ === undefined
+            ) {
+              return;
+            }
+            const xs = [lowX, highX];
+            const ys = [lowY, highY];
+            const zs = [lowZ, highZ];
+            const corners: Array<[number, number, number]> = [];
+            for (const x of xs) for (const y of ys) for (const z of zs) corners.push([x, y, z]);
+            // A1/A3 (contract): the per-part endpoint returns LOCAL
+            // coordinates -- apply the FULL occurrence transform (rotation +
+            // translation), never a translation-only shortcut.
+            bboxByPartId.set(
+              partId,
+              corners.map((corner) => transformPoint(fact.transform, corner)),
+            );
+          });
+        } catch (err) {
+          if (err instanceof ReconnectRequiredError) {
+            throw err;
+          }
+          if (err instanceof OnshapeApiError && err.status === 401) {
+            throw err;
+          }
+          // Any other error (e.g. 403 on an unreadable other-owner referenced
+          // document, mirrors F3) -- swallow it and leave this group's
+          // FRAME_ parts UNRESOLVED. Never fail the whole /api/check.
+          continue;
+        }
+      }
+
       // A Map.get miss yields undefined, so a part whose group was skipped or
       // failed gets massKg: undefined / materialAssigned: undefined --
       // UNRESOLVED, never a silent 0 kg / false (02-MASS-PROPERTIES-CONTRACT.md
-      // F1/F2/F3).
+      // F1/F2/F3). bboxCornersWorld follows the identical discipline (G4).
       const enrichedFacts = facts.map((f) => ({
         ...f,
         massKg: massByPartId.get(f.partId),
         materialAssigned: materialByPartId.get(f.partId),
+        bboxCornersWorld: bboxByPartId.get(f.partId),
       }));
 
       // (6) Config + engine (Plan 02 core, reused as-is) -- now over

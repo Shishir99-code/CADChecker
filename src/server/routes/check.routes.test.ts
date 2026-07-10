@@ -44,7 +44,11 @@ function stubAssemblyDefinition() {
         { id: "inst-3", name: "MECH_referenced_part" },
       ],
       occurrences: [
-        { path: ["inst-1"], transform: new Array(16).fill(0) },
+        // inst-1 (FRAME_rail) carries a non-trivial translation so the 5c
+        // enrichment test below can confirm transformPoint is actually
+        // applied to its bounding-box corners (03-BOUNDING-BOX-CONTRACT.md
+        // A1/A3), not just passed through untransformed.
+        { path: ["inst-1"], transform: [1, 0, 0, 10, 0, 1, 0, 20, 0, 0, 1, 30, 0, 0, 0, 1] },
         { path: ["inst-2"], transform: new Array(16).fill(0) },
         { path: ["inst-3"], transform: new Array(16).fill(0) },
       ],
@@ -92,6 +96,12 @@ function stubGetPartsMetadata() {
     }
     return [];
   });
+}
+
+/** Fake getBoundingBoxes -- only the FRAME_-tagged part (inst-1) is ever
+ * expected to be requested; returns a 1m unit-cube LOCAL box. */
+function stubGetBoundingBoxes() {
+  return vi.fn(async () => ({ lowX: 0, lowY: 0, lowZ: 0, highX: 1, highY: 1, highZ: 1 }));
 }
 
 function buildTestApp(fakeClient: Partial<OnshapeClient>, options: { withSession?: boolean } = {}): Express {
@@ -158,7 +168,7 @@ describe("POST /api/check", () => {
     expect(getElementsInDocument).toHaveBeenCalledWith("doc-1", "ws-1");
     expect(getAssemblyDefinition).toHaveBeenCalledWith("doc-1", "w", "ws-1", ASSEMBLY_ELEMENT_ID);
 
-    expect(res.body.verdicts).toHaveLength(5);
+    expect(res.body.verdicts).toHaveLength(6);
     expect(res.body.measuredContext).toEqual({
       documentId: "doc-1",
       workspaceId: "ws-1",
@@ -174,6 +184,13 @@ describe("POST /api/check", () => {
     expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "MAT-AUDIT")).toBe(true);
     expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "R103")).toBe(true);
     expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "R408")).toBe(true);
+    // No FRAME_ bbox stub is configured on this fakeClient, so
+    // framePerimeterCheck gates UNKNOWN here (no geometry field) -- the
+    // dedicated 5c enrichment test below covers the PASS/FAIL/geometry path.
+    // This assertion only confirms the 6th (new) verdict is present, still
+    // citing R101 per the season config (see that test for the pre-existing
+    // rule-citation collision note, deferred-items.md).
+    expect(res.body.verdicts.filter((v: { rule: string }) => v.rule === "R101")).toHaveLength(2);
   });
 
   it("merges mass/material per-group with cross-document addressing and degrades gracefully on a referenced-document 403", async () => {
@@ -235,6 +252,88 @@ describe("POST /api/check", () => {
     );
     expect(getPartsMetadata).toHaveBeenCalledWith("doc-1", "w", "ws-1", SAME_DOC_ELEMENT_ID);
     expect(getPartsMetadata).toHaveBeenCalledWith(REF_DOC_ID, "v", REF_DOC_VERSION, REF_DOC_ELEMENT_ID);
+
+    runAllSpy.mockRestore();
+  });
+
+  it("enriches FRAME_-tagged facts with transformed world-space bbox corners (5c) and leaves non-FRAME_ facts untouched", async () => {
+    const getElementsInDocument = vi.fn().mockResolvedValue(stubElements());
+    const getAssemblyDefinition = vi.fn().mockResolvedValue(stubAssemblyDefinition());
+    const getPartStudioMassProperties = stubGetPartStudioMassProperties();
+    const getPartsMetadata = stubGetPartsMetadata();
+    const getBoundingBoxes = stubGetBoundingBoxes();
+
+    const runAllSpy = vi.spyOn(CheckEngine.prototype, "runAll");
+
+    const app = buildTestApp({
+      getElementsInDocument,
+      getAssemblyDefinition,
+      getPartStudioMassProperties,
+      getPartsMetadata,
+      getBoundingBoxes,
+    });
+
+    const res = await request(app)
+      .post("/api/check")
+      .send({ documentId: "doc-1", workspaceId: "ws-1" });
+
+    expect(res.status).toBe(200);
+
+    const enrichedFacts = runAllSpy.mock.calls[0]?.[0] as Fact[];
+    const byPartId = new Map(enrichedFacts.map((f) => [f.partId, f]));
+
+    // Only inst-1 (FRAME_rail) is FRAME_-tagged -- getBoundingBoxes is
+    // called exactly for it, addressed via the same server-derived
+    // documentId/wvm/wvmid/elementId as the 5b mass fetch.
+    expect(getBoundingBoxes).toHaveBeenCalledTimes(1);
+    expect(getBoundingBoxes).toHaveBeenCalledWith(
+      "doc-1",
+      "w",
+      "ws-1",
+      SAME_DOC_ELEMENT_ID,
+      "inst-1",
+      undefined,
+    );
+
+    // The occurrence transform (translation by [10, 20, 30]) MUST be applied
+    // to the LOCAL 1m unit-cube box -- corners land at X/Y/Z in [10,11],
+    // [20,21], [30,31] respectively, never the raw untransformed [0,1] range
+    // (A1/A3).
+    const frameCorners = byPartId.get("inst-1")?.bboxCornersWorld;
+    expect(frameCorners).toHaveLength(8);
+    for (const [x, y, z] of frameCorners ?? []) {
+      expect(x).toBeGreaterThanOrEqual(10);
+      expect(x).toBeLessThanOrEqual(11);
+      expect(y).toBeGreaterThanOrEqual(20);
+      expect(y).toBeLessThanOrEqual(21);
+      expect(z).toBeGreaterThanOrEqual(30);
+      expect(z).toBeLessThanOrEqual(31);
+    }
+
+    // Non-FRAME_ facts (inst-2, inst-3) never get a bboxCornersWorld entry --
+    // getBoundingBoxes is never called for them.
+    expect(byPartId.get("inst-2")?.bboxCornersWorld).toBeUndefined();
+    expect(byPartId.get("inst-3")?.bboxCornersWorld).toBeUndefined();
+
+    // The unit-cube's 8 corners floor-project to exactly 4 unique XY points
+    // (a 1m x 1m square) -- perimeter ~157.48in exceeds the 110in R101
+    // limit, so this end-to-end enrichment path resolves to FAIL with hull
+    // geometry attached (fine-grained hull-shape behavior is covered by
+    // frame-perimeter.check.test.ts; this test only confirms the route's 5c
+    // enrichment reaches the check correctly).
+    //
+    // Selected by `v.geometry` presence, NOT `v.rule === "R101"`: the
+    // pre-existing Phase-1 occurrenceCountCheck positionally cites whatever
+    // config.rules[0] currently is (now that rules/2026.json's R101 entry is
+    // VERIFIED, that check ALSO reports rule "R101" for an unrelated
+    // occurrence-count measurement -- see deferred-items.md). This is the
+    // exact ambiguity 03-02-PLAN.md's Task 3 anticipates by recommending
+    // `verdicts.find(v => v.geometry)` over a rule-string lookup.
+    const perimeterVerdict = res.body.verdicts.find((v: { geometry?: unknown }) => v.geometry);
+    expect(perimeterVerdict).toBeDefined();
+    expect(perimeterVerdict.rule).toBe("R101");
+    expect(perimeterVerdict.status).toBe("FAIL");
+    expect(perimeterVerdict.geometry?.hullVertices).toHaveLength(4);
 
     runAllSpy.mockRestore();
   });
