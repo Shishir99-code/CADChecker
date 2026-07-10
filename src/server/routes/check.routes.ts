@@ -187,16 +187,23 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
       // (not re-derived) -- every id used below comes from
       // `definition`/`groups`, never `req.body` (continues T-01-11/CONN-02,
       // now T-03-03).
-      const frameFactsById = new Map(
-        facts.filter((f) => f.name.startsWith("FRAME_")).map((f) => [f.partId, f]),
-      );
-      const bboxByPartId = new Map<string, Array<[number, number, number]>>();
+      //
+      // CR-02: the LOCAL box fetch is cached ONCE per unique frame CAD
+      // partId (the LOCAL box is part-invariant), but the world-space
+      // transform is applied PER OCCURRENCE and stored keyed by
+      // `fact.path.join("/")` (unique per occurrence) -- so N occurrences of
+      // one reused FRAME_ part each contribute their OWN transformed corners
+      // to the hull, instead of collapsing to whichever occurrence's Fact
+      // happened to be indexed last under the old partId-only Map.
+      const frameFacts = facts.filter((f) => f.name.startsWith("FRAME_"));
+      const frameFactPartIds = new Set(frameFacts.map((f) => f.partId));
+      const localCornersByPartId = new Map<string, Array<[number, number, number]>>();
 
       for (const parts of groups.values()) {
         const first = parts[0];
         if (!first) continue;
 
-        const framePartIds = parts.map((p) => p.partId).filter((id) => frameFactsById.has(id));
+        const framePartIds = parts.map((p) => p.partId).filter((id) => frameFactPartIds.has(id));
         if (framePartIds.length === 0) continue; // no FRAME_ parts in this group
 
         const { elementId: groupElementId, configuration } = first;
@@ -228,11 +235,11 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
           );
           framePartIds.forEach((partId, i) => {
             const box = boxes[i];
-            const fact = frameFactsById.get(partId);
-            if (!box || !fact) return;
+            if (!box) return;
             // G4 (03-BOUNDING-BOX-CONTRACT.md): any absent lowX..highZ field
             // is UNRESOLVED -- never defaulted to 0 (a 0 would silently
-            // shrink the hull). Leave this part's bboxByPartId entry unset.
+            // shrink the hull). Leave this partId's localCornersByPartId
+            // entry unset.
             const { lowX, lowY, lowZ, highX, highY, highZ } = box;
             if (
               lowX === undefined ||
@@ -249,13 +256,9 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
             const zs = [lowZ, highZ];
             const corners: Array<[number, number, number]> = [];
             for (const x of xs) for (const y of ys) for (const z of zs) corners.push([x, y, z]);
-            // A1/A3 (contract): the per-part endpoint returns LOCAL
-            // coordinates -- apply the FULL occurrence transform (rotation +
-            // translation), never a translation-only shortcut.
-            bboxByPartId.set(
-              partId,
-              corners.map((corner) => transformPoint(fact.transform, corner)),
-            );
+            // LOCAL corners only -- NO transform applied here (part-invariant,
+            // cached once per unique partId regardless of occurrence count).
+            localCornersByPartId.set(partId, corners);
           });
         } catch (err) {
           if (err instanceof ReconnectRequiredError) {
@@ -269,6 +272,21 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
           // FRAME_ parts UNRESOLVED. Never fail the whole /api/check.
           continue;
         }
+      }
+
+      // Per-OCCURRENCE transform application (CR-02, D-02/G1 "include every
+      // occurrence, not one"): apply EACH occurrence's own `fact.transform`
+      // to the shared LOCAL corners, storing the result keyed by that
+      // occurrence's unique path -- so a reused FRAME_ part placed at N
+      // locations contributes N distinct transformed footprints, never one.
+      const bboxByOccurrence = new Map<string, Array<[number, number, number]>>();
+      for (const fact of frameFacts) {
+        const local = localCornersByPartId.get(fact.partId);
+        if (!local) continue;
+        bboxByOccurrence.set(
+          fact.path.join("/"),
+          local.map((corner) => transformPoint(fact.transform, corner)),
+        );
       }
 
       // (5d, NEW) Single assembly-level bounding-box fetch for the whole-
@@ -301,14 +319,16 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
       // A Map.get miss yields undefined, so a part whose group was skipped or
       // failed gets massKg: undefined / materialAssigned: undefined --
       // UNRESOLVED, never a silent 0 kg / false (02-MASS-PROPERTIES-CONTRACT.md
-      // F1/F2/F3). bboxCornersWorld follows the identical discipline (G4).
-      // robotMaxZWorld is the SAME scalar on every fact (5d, whole-robot --
-      // not per-part).
+      // F1/F2/F3). bboxCornersWorld follows the identical discipline (G4),
+      // now keyed by OCCURRENCE (fact.path.join("/")) rather than partId
+      // alone (CR-02) -- every occurrence-Fact receives its own transformed
+      // corners. robotMaxZWorld is the SAME scalar on every fact (5d,
+      // whole-robot -- not per-part).
       const enrichedFacts = facts.map((f) => ({
         ...f,
         massKg: massByPartId.get(f.partId),
         materialAssigned: materialByPartId.get(f.partId),
-        bboxCornersWorld: bboxByPartId.get(f.partId),
+        bboxCornersWorld: bboxByOccurrence.get(f.path.join("/")),
         robotMaxZWorld,
       }));
 
