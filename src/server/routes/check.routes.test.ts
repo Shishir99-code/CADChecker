@@ -104,6 +104,12 @@ function stubGetBoundingBoxes() {
   return vi.fn(async () => ({ lowX: 0, lowY: 0, lowZ: 0, highX: 1, highY: 1, highZ: 1 }));
 }
 
+/** Fake getAssemblyBoundingBoxes -- the single whole-robot world-space box
+ * (5d). highZ = 0.5m -> ~19.68in, comfortably under the 30in R104 limit. */
+function stubGetAssemblyBoundingBoxes() {
+  return vi.fn(async () => ({ lowX: -1, lowY: -1, lowZ: 0, highX: 1, highY: 1, highZ: 0.5 }));
+}
+
 function buildTestApp(fakeClient: Partial<OnshapeClient>, options: { withSession?: boolean } = {}): Express {
   const { withSession = true } = options;
   const app = express();
@@ -146,7 +152,7 @@ describe("POST /api/check", () => {
     expect(res.status).toBe(401);
   });
 
-  it("re-derives live context via getElementsInDocument on THIS request and returns 5 verdicts", async () => {
+  it("re-derives live context via getElementsInDocument on THIS request and returns 7 verdicts", async () => {
     const getElementsInDocument = vi.fn().mockResolvedValue(stubElements());
     const getAssemblyDefinition = vi.fn().mockResolvedValue(stubAssemblyDefinition());
     const getPartStudioMassProperties = stubGetPartStudioMassProperties();
@@ -168,7 +174,7 @@ describe("POST /api/check", () => {
     expect(getElementsInDocument).toHaveBeenCalledWith("doc-1", "ws-1");
     expect(getAssemblyDefinition).toHaveBeenCalledWith("doc-1", "w", "ws-1", ASSEMBLY_ELEMENT_ID);
 
-    expect(res.body.verdicts).toHaveLength(6);
+    expect(res.body.verdicts).toHaveLength(7);
     expect(res.body.measuredContext).toEqual({
       documentId: "doc-1",
       workspaceId: "ws-1",
@@ -191,6 +197,11 @@ describe("POST /api/check", () => {
     // citing R101 per the season config (see that test for the pre-existing
     // rule-citation collision note, deferred-items.md).
     expect(res.body.verdicts.filter((v: { rule: string }) => v.rule === "R101")).toHaveLength(2);
+    // No getAssemblyBoundingBoxes stub is configured on this fakeClient
+    // either, so startingHeightCheck (5d, the 7th/new verdict) also gates
+    // UNKNOWN here -- the dedicated 5d enrichment test below covers the
+    // PASS path.
+    expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "R104")).toBe(true);
   });
 
   it("merges mass/material per-group with cross-document addressing and degrades gracefully on a referenced-document 403", async () => {
@@ -334,6 +345,47 @@ describe("POST /api/check", () => {
     expect(perimeterVerdict.rule).toBe("R101");
     expect(perimeterVerdict.status).toBe("FAIL");
     expect(perimeterVerdict.geometry?.hullVertices).toHaveLength(4);
+
+    runAllSpy.mockRestore();
+  });
+
+  it("enriches every fact with the whole-robot robotMaxZWorld (5d) from a single getAssemblyBoundingBoxes call", async () => {
+    const getElementsInDocument = vi.fn().mockResolvedValue(stubElements());
+    const getAssemblyDefinition = vi.fn().mockResolvedValue(stubAssemblyDefinition());
+    const getPartStudioMassProperties = stubGetPartStudioMassProperties();
+    const getPartsMetadata = stubGetPartsMetadata();
+    const getAssemblyBoundingBoxes = stubGetAssemblyBoundingBoxes();
+
+    const runAllSpy = vi.spyOn(CheckEngine.prototype, "runAll");
+
+    const app = buildTestApp({
+      getElementsInDocument,
+      getAssemblyDefinition,
+      getPartStudioMassProperties,
+      getPartsMetadata,
+      getAssemblyBoundingBoxes,
+    });
+
+    const res = await request(app)
+      .post("/api/check")
+      .send({ documentId: "doc-1", workspaceId: "ws-1" });
+
+    expect(res.status).toBe(200);
+
+    // Called exactly once (not per-group/per-part), addressed via the
+    // assembly's own server-derived documentId/workspaceId/elementId.
+    expect(getAssemblyBoundingBoxes).toHaveBeenCalledTimes(1);
+    expect(getAssemblyBoundingBoxes).toHaveBeenCalledWith("doc-1", "w", "ws-1", ASSEMBLY_ELEMENT_ID);
+
+    const enrichedFacts = runAllSpy.mock.calls[0]?.[0] as Fact[];
+    // ALL facts (not just FRAME_) carry the SAME whole-robot scalar (D-05).
+    for (const f of enrichedFacts) {
+      expect(f.robotMaxZWorld).toBe(0.5);
+    }
+
+    const heightVerdict = res.body.verdicts.find((v: { rule: string }) => v.rule === "R104");
+    expect(heightVerdict.status).toBe("PASS");
+    expect(heightVerdict.measuredCount).toBeCloseTo(0.5 * 39.37007874, 2);
 
     runAllSpy.mockRestore();
   });

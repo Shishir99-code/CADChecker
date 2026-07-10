@@ -11,6 +11,7 @@ import { materialAuditCheck } from "../checks/material-audit.check.ts";
 import { robotWeightCheck } from "../checks/robot-weight.check.ts";
 import { robotBumpersWeightCheck } from "../checks/robot-bumpers-weight.check.ts";
 import { framePerimeterCheck } from "../checks/frame-perimeter.check.ts";
+import { startingHeightCheck } from "../checks/starting-height.check.ts";
 import { transformPoint } from "../geometry/transform-point.ts";
 
 const CURRENT_SEASON = "2026";
@@ -39,6 +40,7 @@ function buildEngine(): CheckEngine {
   engine.register(robotWeightCheck);
   engine.register(robotBumpersWeightCheck);
   engine.register(framePerimeterCheck);
+  engine.register(startingHeightCheck);
   return engine;
 }
 
