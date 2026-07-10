@@ -107,3 +107,7 @@ None - no external service configuration required.
 ---
 *Phase: 03-frame-perimeter-height*
 *Completed: 2026-07-10*
+
+## Self-Check: PASSED
+
+All modified/created files confirmed present on disk; all task commit hashes (80b7444, c376bb8, 4d124c4, e21561e) and the SUMMARY commit (9d74d62) confirmed present in git log.
