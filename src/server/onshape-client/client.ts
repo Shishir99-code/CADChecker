@@ -9,6 +9,7 @@ export type ElementSummary = components["schemas"]["BTDocumentElementInfo"];
 export type AssemblyDefinitionResponse = components["schemas"]["BTAssemblyDefinitionInfo"];
 export type MassPropertiesBulkResponse = components["schemas"]["BTMassPropertiesBulkInfo"];
 export type PartMetadata = components["schemas"]["BTPartMetadataInfo"];
+export type BoundingBoxResponse = components["schemas"]["BTBoundingBoxInfo"];
 
 /** Thrown when an Onshape API call itself returns a non-2xx status (surfaced
  * to callWithRefresh via a `status` field so it can recognize 401s). */
@@ -101,6 +102,20 @@ export interface OnshapeClient {
     wvmid: string,
     elementId: string,
   ): Promise<PartMetadata[]>;
+  getBoundingBoxes(
+    documentId: string,
+    wvm: string,
+    wvmid: string,
+    elementId: string,
+    partId: string,
+    configuration?: string,
+  ): Promise<BoundingBoxResponse>;
+  getAssemblyBoundingBoxes(
+    documentId: string,
+    wvm: string,
+    wvmid: string,
+    elementId: string,
+  ): Promise<BoundingBoxResponse>;
 }
 
 export function createOnshapeClient(session: RefreshableSession, env: OnshapeClientEnv): OnshapeClient {
@@ -215,6 +230,69 @@ export function createOnshapeClient(session: RefreshableSession, env: OnshapeCli
             throw new OnshapeApiError(res.status, "Failed to fetch parts metadata");
           }
           return (await res.json()) as PartMetadata[];
+        },
+        refreshFn,
+      );
+    },
+
+    async getBoundingBoxes(documentId, wvm, wvmid, elementId, partId, configuration) {
+      return callWithRefresh(
+        session,
+        async () => {
+          // Like getAssemblyDefinition/getPartStudioMassProperties, this
+          // operation declares only a `default` response in the OpenAPI spec,
+          // so openapi-fetch's typed .GET() narrows `data` to `never`. Use
+          // raw fetch + cast through the generated BTBoundingBoxInfo schema.
+          //
+          // RESEARCH Assumption A1 (03-RESEARCH.md): this per-part endpoint is
+          // inferred to return corners in the Part Studio's LOCAL coordinate
+          // system, requiring Fact.transform to reach world space -- VERIFY
+          // against 03-BOUNDING-BOX-CONTRACT.md before trusting in check code.
+          const url = new URL(
+            `/api/parts/d/${documentId}/${wvm}/${wvmid}/e/${elementId}/partid/${partId}/boundingboxes`,
+            ONSHAPE_API_BASE_URL,
+          );
+          if (configuration) url.searchParams.set("configuration", configuration);
+          const res = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${session.accessToken ?? ""}`,
+              Accept: "application/json",
+            },
+          });
+          if (!res.ok) {
+            throw new OnshapeApiError(res.status, "Failed to fetch part bounding box");
+          }
+          return (await res.json()) as BoundingBoxResponse;
+        },
+        refreshFn,
+      );
+    },
+
+    async getAssemblyBoundingBoxes(documentId, wvm, wvmid, elementId) {
+      return callWithRefresh(
+        session,
+        async () => {
+          // Same raw-fetch-then-cast idiom as the other methods in this file.
+          //
+          // RESEARCH Assumption A2 (03-RESEARCH.md): this assembly-level
+          // endpoint is inferred to already be in world space (the assembly
+          // IS the top-level/world coordinate frame) -- no transform needed.
+          // VERIFY against 03-BOUNDING-BOX-CONTRACT.md before trusting in
+          // check code.
+          const url = new URL(
+            `/api/assemblies/d/${documentId}/${wvm}/${wvmid}/e/${elementId}/boundingboxes`,
+            ONSHAPE_API_BASE_URL,
+          );
+          const res = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${session.accessToken ?? ""}`,
+              Accept: "application/json",
+            },
+          });
+          if (!res.ok) {
+            throw new OnshapeApiError(res.status, "Failed to fetch assembly bounding box");
+          }
+          return (await res.json()) as BoundingBoxResponse;
         },
         refreshFn,
       );

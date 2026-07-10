@@ -17,6 +17,7 @@
     "gen:types": "openapi-typescript https://raw.githubusercontent.com/onshape-public/onshape-clients/master/openapi.json -o src/server/onshape-client/types/onshape.d.ts"
   },
   "dependencies": {
+    "d3-polygon": "^3.0.1",
     "dotenv": "17.4.2",
     "express": "5.2.1",
     "express-session": "1.19.0",
@@ -27,6 +28,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@types/d3-polygon": "^3.0.2",
     "@types/express": "5.0.6",
     "@types/express-session": "1.19.0",
     "@types/node": "26.1.0",
