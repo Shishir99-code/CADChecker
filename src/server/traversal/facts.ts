@@ -37,4 +37,16 @@ export interface Fact {
    * doing so would silently shrink the perimeter hull (RESEARCH Pitfall 4).
    */
   bboxCornersWorld?: Array<[number, number, number]>;
+  /**
+   * Whole-robot max +Z extent (all occurrences, D-05 -- NOT just FRAME_
+   * parts), read directly from the single assembly-level `getAssemblyBoundingBoxes`
+   * call's `highZ` (03-BOUNDING-BOX-CONTRACT.md A2/G3 -- already world-space,
+   * no transform applied). World-space meters. The SAME scalar is copied onto
+   * every fact by the route's enrichment step. `undefined` means UNRESOLVED --
+   * the assembly-level box could not be read at all, or its `highZ` field was
+   * absent (G4). NEVER treat `undefined` as a substituted `0` height --
+   * doing so would silently produce a false PASS (RESEARCH-style pitfall,
+   * mirrors `massKg`/`bboxCornersWorld`'s UNRESOLVED discipline).
+   */
+  robotMaxZWorld?: number;
 }

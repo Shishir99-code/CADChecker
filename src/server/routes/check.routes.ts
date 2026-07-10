@@ -269,15 +269,45 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
         }
       }
 
+      // (5d, NEW) Single assembly-level bounding-box fetch for the whole-
+      // robot starting-configuration height (GEOM-03). G3/A2
+      // (03-BOUNDING-BOX-CONTRACT.md): the assembly-level box's `highZ` is
+      // ALREADY world-space -- no transform, no per-part enumeration, ONE
+      // call regardless of part count (Pitfall 2: per-part-for-height would
+      // re-trigger the cross-document 403 storm). Addressed by the
+      // assembly's OWN server-derived documentId/workspaceId/elementId
+      // (never req.body -- continues T-01-11/CONN-02, now T-03-07). On
+      // success, if `highZ` is defined, it is copied onto every enriched
+      // fact below; on ANY failure (including an absent `highZ`, G4) it
+      // stays undefined so startingHeightCheck gates UNKNOWN (T-03-08) --
+      // never a substituted 0 height.
+      let robotMaxZWorld: number | undefined;
+      try {
+        const assemblyBox = await client.getAssemblyBoundingBoxes(assemblyDocumentId, "w", workspaceId, elementId);
+        robotMaxZWorld = assemblyBox.highZ;
+      } catch (err) {
+        if (err instanceof ReconnectRequiredError) {
+          throw err;
+        }
+        if (err instanceof OnshapeApiError && err.status === 401) {
+          throw err;
+        }
+        // Any other error (e.g. the assembly-level box itself unreadable) --
+        // swallow it and leave robotMaxZWorld undefined (UNKNOWN gate).
+      }
+
       // A Map.get miss yields undefined, so a part whose group was skipped or
       // failed gets massKg: undefined / materialAssigned: undefined --
       // UNRESOLVED, never a silent 0 kg / false (02-MASS-PROPERTIES-CONTRACT.md
       // F1/F2/F3). bboxCornersWorld follows the identical discipline (G4).
+      // robotMaxZWorld is the SAME scalar on every fact (5d, whole-robot --
+      // not per-part).
       const enrichedFacts = facts.map((f) => ({
         ...f,
         massKg: massByPartId.get(f.partId),
         materialAssigned: materialByPartId.get(f.partId),
         bboxCornersWorld: bboxByPartId.get(f.partId),
+        robotMaxZWorld,
       }));
 
       // (6) Config + engine (Plan 02 core, reused as-is) -- now over
