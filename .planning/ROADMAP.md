@@ -89,7 +89,7 @@ Plans:
   3. User sees a starting-configuration height verdict (R104/R107) against the season limit, with the measured configuration explicitly named/disclosed rather than assumed to be "whatever tab is open"
   4. If no `FRAME_`-tagged parts exist in the document, the perimeter check shows an explicit "not yet checkable — no frame parts tagged" state instead of a silent pass or a zero-value result
 
-**Plans**: 3 plans
+**Plans**: 4 plans (03-04 = gap closure for CR-01/CR-02)
 
 Plans:
 **Wave 1**
@@ -103,6 +103,10 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 03-03-PLAN.md — Starting-configuration height slice: single assembly-level bbox enrichment + gated startingHeightCheck (R104) + spike cleanup (GEOM-03)
+
+**Wave 4 — Gap Closure** *(closes 03-VERIFICATION.md gaps)*
+
+- [ ] 03-04-PLAN.md — Fix instance→CAD partId resolution (CR-01) + per-occurrence 5c enrichment so reused FRAME_ parts aren't collapsed (CR-02) + distinct-id/two-occurrence regression fixtures (GEOM-01, GEOM-02)
 
 ### Phase 4: Trust-Bar Results Panel
 
