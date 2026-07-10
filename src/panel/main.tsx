@@ -5,6 +5,7 @@ import { runCheck, isReconnectSignal, AuthRequiredError, type CheckReport } from
 import { PlumbingBanner } from "./components/PlumbingBanner.tsx";
 import { ReportTable } from "./components/ReportTable.tsx";
 import { ReconnectState } from "./components/ReconnectState.tsx";
+import { HullRender } from "./components/HullRender.tsx";
 
 type CheckUiState =
   | { status: "idle" }
@@ -85,6 +86,17 @@ function App() {
           <>
             <PlumbingBanner />
             <ReportTable verdicts={checkState.report.verdicts} />
+            {(() => {
+              // Selected by `geometry` presence, NOT `rule === "R101"` --
+              // occurrenceCountCheck (Phase 1 proof-of-plumbing) also
+              // positionally cites "R101" now that rules/2026.json is
+              // VERIFIED (deferred-items.md), so a rule-string lookup here
+              // would risk grabbing the wrong verdict. The panel performs
+              // zero geometry recomputation -- it only renders whatever hull
+              // vertex array the backend already computed (D-07).
+              const perimeterVerdict = checkState.report.verdicts.find((v) => v.geometry);
+              return perimeterVerdict ? <HullRender verdict={perimeterVerdict} /> : null;
+            })()}
           </>
         )}
       </section>
