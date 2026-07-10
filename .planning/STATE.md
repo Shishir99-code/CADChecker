@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-07-10T14:11:53.945Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-07-10T14:19:26.084Z"
 last_activity: 2026-07-10 -- Phase 03 Plan 01 complete (commits 4dc5956, a72329a, 204db9b, 45f070f, 877c6b3, c518a97)
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
-  percent: 50
+  completed_plans: 9
+  percent: 75
 ---
 
 # Project State
@@ -60,6 +60,7 @@ Progress: [██████████] 100% (phase 01 plans)
 | Phase 02-trustworthy-weight P03 | 15min | 3 tasks | 7 files |
 | Phase 03 P01 | 15min | 3 tasks | 7 files |
 | Phase 03 P02 | 13min | 3 tasks | 14 files |
+| Phase 03 P03 | 15min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 03]: occurrences[].path holds instance ids, not part ids -- the occurrence-to-part join must resolve the leaf id through an instance map built from rootAssembly.instances[] + subAssemblies[].instances[] (G1) — discovered as a bug fix during the 03-01 live-verification spike; applies to any future occurrence-to-part join
 - [Phase ?]: Perimeter verdict gated to UNKNOWN via three distinct branches (empty-state, unresolved-bbox, null-hull) so a dropped FRAME_ part or degenerate geometry can never silently produce a false PASS
 - [Phase ?]: Perimeter/geometry verdicts must be selected by 'geometry' field presence, not rule string, due to a pre-existing R101 rule-citation collision with Phase-1's occurrenceCountCheck (see deferred-items.md)
+- [Phase ?]: [Phase 03]: startingHeightCheck gates UNKNOWN via facts.every(f => f.robotMaxZWorld === undefined) so an empty facts array and a total 5d assembly-box-fetch failure both cleanly resolve to UNKNOWN with no separate empty-array branch
+- [Phase ?]: [Phase 03]: robotMaxZWorld is fetched ONCE per request (route step 5d, top-level try/catch, whole-robot scalar) and copied onto every enriched fact -- distinct from 5b/5c's per-group discipline, per G3's preference for the single assembly-level highZ over per-part enumeration
 
 ### Pending Todos
 
@@ -123,6 +126,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-10T14:11:53.941Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-07-10T14:19:26.080Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
