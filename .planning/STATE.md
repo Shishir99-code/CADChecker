@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 03-03-PLAN.md
+status: gaps_found
+stopped_at: Phase 03 verification gaps_found — GEOM-01 join broken (CR-01), gap closure pending
 last_updated: "2026-07-10T14:19:26.084Z"
-last_activity: 2026-07-10 -- Phase 03 Plan 01 complete (commits 4dc5956, a72329a, 204db9b, 45f070f, 877c6b3, c518a97)
+last_activity: 2026-07-10 -- Phase 03 built (9 plans) but verification found 2 Critical gaps (CR-01/CR-02); phase REOPENED
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 2
   total_plans: 9
   completed_plans: 9
-  percent: 75
+  percent: 60
 ---
 
 # Project State
@@ -25,10 +25,11 @@ See: .planning/PROJECT.md (updated 2026-07-01)
 
 ## Current Position
 
-Phase: 03 (frame-perimeter-height) — EXECUTING
-Plan: 3 of 3 (03-01 complete; 03-02 not yet started)
-Status: 03-01 complete -- bounding-box client methods added, coordinate-frame contract live-verified, season limits VERIFIED
-Last activity: 2026-07-10 -- Phase 03 Plan 01 complete (commits 4dc5956, a72329a, 204db9b, 45f070f, 877c6b3, c518a97)
+Phase: 03 (frame-perimeter-height) — REOPENED (gaps_found)
+Plan: All 3 plans built & committed; awaiting gap closure for CR-01/CR-02
+Status: Verification gaps_found — GEOM-01 perimeter join broken live (CR-01: Fact.partId is instance id, not CAD partId; also breaks Phase 2 mass/material join on real docs), CR-02 occurrence-collapse false-PASS risk, GEOM-02 partial; GEOM-03 height VERIFIED
+Next: /gsd-plan-phase 03 --gaps → execute gaps → re-verify (live, against a FRAME_-tagged doc)
+Last activity: 2026-07-10 -- Phase 03 verification gaps_found (see 03-VERIFICATION.md, 03-REVIEW.md)
 
 Progress: [██████████] 100% (phase 01 plans)
 

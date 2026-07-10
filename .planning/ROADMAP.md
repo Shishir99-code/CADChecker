@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Connected Foundation & First Check** - OAuth-connected panel runs a manual check-now and returns a structured, rule-cited report using a shared occurrence-traversal utility and versioned config (completed 2026-07-02)
 - [x] **Phase 2: Trustworthy Weight** - Material-default audit gates two separately-filtered weight verdicts (robot-only R103, robot+bumpers R408) (completed 2026-07-09)
-- [x] **Phase 3: Frame Perimeter & Height** - Robot/frame perimeter (2D convex hull of tagged frame parts, rendered visually) and starting-configuration height checks (completed 2026-07-10)
+- [ ] **Phase 3: Frame Perimeter & Height** - Robot/frame perimeter (2D convex hull of tagged frame parts, rendered visually) and starting-configuration height checks (REOPENED 2026-07-10 — verification gaps_found: GEOM-01 perimeter join broken (CR-01), GEOM-02 partial; GEOM-03 height verified; see 03-VERIFICATION.md, gap closure pending)
 - [ ] **Phase 4: Trust-Bar Results Panel** - Every verdict cites its rule, discloses what was measured, and never silently passes when data is missing
 
 ## Phase Details
@@ -133,5 +133,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
 | 2. Trustworthy Weight | 3/3 | Complete    | 2026-07-09 |
-| 3. Frame Perimeter & Height | 3/3 | Complete   | 2026-07-10 |
+| 3. Frame Perimeter & Height | 3/3 built, gaps_found | Reopened (gap closure pending) | - |
 | 4. Trust-Bar Results Panel | 0/2 | Not started | - |

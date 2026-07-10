@@ -31,8 +31,8 @@ Requirements for the initial release — the smallest end-to-end useful slice. E
 
 ### Geometry Checks
 
-- [x] **GEOM-01**: User sees a robot/frame perimeter check computed as the 2D convex hull of the floor-plane projection of `FRAME_`-tagged parts, compared against the season limit (R101/R104)
-- [x] **GEOM-02**: The computed hull is rendered visually so the team can sanity-check what was measured, and the check discloses which configuration was measured
+- [ ] **GEOM-01**: User sees a robot/frame perimeter check computed as the 2D convex hull of the floor-plane projection of `FRAME_`-tagged parts, compared against the season limit (R101/R104) — REOPENED 2026-07-10: enrichment join broken (CR-01, Fact.partId is instance id not CAD partId → always UNKNOWN live); gap closure pending
+- [~] **GEOM-02**: The computed hull is rendered visually so the team can sanity-check what was measured, and the check discloses which configuration was measured — PARTIAL: render code correct but starved of real hull data by GEOM-01's broken join
 - [x] **GEOM-03**: User sees a starting-configuration height check against the season limit (R104/R107), disclosing which configuration was measured
 
 ### Results Panel
@@ -96,8 +96,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | WGHT-02 | Phase 2 | Complete |
 | WGHT-03 | Phase 2 | Complete |
 | WGHT-04 | Phase 2 | Complete |
-| GEOM-01 | Phase 3 | Complete |
-| GEOM-02 | Phase 3 | Complete |
+| GEOM-01 | Phase 3 | Reopened (CR-01 broken join) |
+| GEOM-02 | Phase 3 | Partial |
 | GEOM-03 | Phase 3 | Complete |
 | RSLT-01 | Phase 4 | Pending |
 | RSLT-02 | Phase 4 | Pending |
