@@ -14,7 +14,8 @@
     "build": "tsc -p tsconfig.server.json && vite build",
     "lint": "eslint src",
     "test": "vitest run",
-    "gen:types": "openapi-typescript https://raw.githubusercontent.com/onshape-public/onshape-clients/master/openapi.json -o src/server/onshape-client/types/onshape.d.ts"
+    "gen:types": "openapi-typescript https://raw.githubusercontent.com/onshape-public/onshape-clients/master/openapi.json -o src/server/onshape-client/types/onshape.d.ts",
+    "verify:frame": "node --experimental-strip-types scripts/verify-frame-perimeter.ts"
   },
   "dependencies": {
     "d3-polygon": "^3.0.1",
