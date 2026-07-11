@@ -29,7 +29,7 @@ Phase: 03 (frame-perimeter-height) — EXECUTING
 Plan: 1 of 4
 Status: Executing Phase 03
 Next: /gsd-plan-phase 03 --gaps → execute gaps → re-verify (live, against a FRAME_-tagged doc)
-Last activity: 2026-07-10 -- Phase 03 execution started
+Last activity: 2026-07-11 -- Completed quick task 260711-gvl: frame-perimeter verification harness + live runbook
 
 Progress: [██████████] 100% (phase 01 plans)
 
@@ -112,6 +112,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260707-geu | Serve built panel from Express (Render single-service deploy) | 2026-07-07 | 8a9f89f | [260707-geu-render-serve-panel](./quick/260707-geu-render-serve-panel/) |
 | 260709-k6r | Env-aware session cookie — OAuth over http://localhost (no tunnel) | 2026-07-09 | e5026e4 | [260709-k6r-enable-oauth-over-http-localhost-via-env](./quick/260709-k6r-enable-oauth-over-http-localhost-via-env/) |
+| 260711-gvl | Frame-perimeter verification: offline harness (real route, CR-01/CR-02 guards) + live-verification runbook | 2026-07-11 | f654226 | [260711-gvl-scaffold-phase-3-frame-perimeter-verific](./quick/260711-gvl-scaffold-phase-3-frame-perimeter-verific/) |
 
 ## Deferred Items
 
