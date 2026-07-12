@@ -191,7 +191,7 @@ describe("POST /api/check", () => {
     expect(res.status).toBe(401);
   });
 
-  it("re-derives live context via getElementsInDocument on THIS request and returns 7 verdicts", async () => {
+  it("re-derives live context via getElementsInDocument on THIS request and returns 5 verdicts", async () => {
     const getElementsInDocument = vi.fn().mockResolvedValue(stubElements());
     const getAssemblyDefinition = vi.fn().mockResolvedValue(stubAssemblyDefinition());
     const getPartStudioMassProperties = stubGetPartStudioMassProperties();
@@ -213,7 +213,7 @@ describe("POST /api/check", () => {
     expect(getElementsInDocument).toHaveBeenCalledWith("doc-1", "ws-1");
     expect(getAssemblyDefinition).toHaveBeenCalledWith("doc-1", "w", "ws-1", ASSEMBLY_ELEMENT_ID);
 
-    expect(res.body.verdicts).toHaveLength(7);
+    expect(res.body.verdicts).toHaveLength(5);
     expect(res.body.measuredContext).toEqual({
       documentId: "doc-1",
       workspaceId: "ws-1",
@@ -232,14 +232,13 @@ describe("POST /api/check", () => {
     // No FRAME_ bbox stub is configured on this fakeClient, so
     // framePerimeterCheck gates UNKNOWN here (no geometry field) -- the
     // dedicated 5c enrichment test below covers the PASS/FAIL/geometry path.
-    // This assertion only confirms the 6th (new) verdict is present, still
-    // citing R101 per the season config (see that test for the pre-existing
-    // rule-citation collision note, deferred-items.md).
-    expect(res.body.verdicts.filter((v: { rule: string }) => v.rule === "R101")).toHaveLength(2);
+    // The two Phase-1 proof-of-plumbing checks were retired in 04-01 (D-01),
+    // resolving the pre-existing R101/R103 rule-citation collision -- exactly
+    // one verdict now cites R101 (the real frame-perimeter check).
+    expect(res.body.verdicts.filter((v: { rule: string }) => v.rule === "R101")).toHaveLength(1);
     // No getAssemblyBoundingBoxes stub is configured on this fakeClient
-    // either, so startingHeightCheck (5d, the 7th/new verdict) also gates
-    // UNKNOWN here -- the dedicated 5d enrichment test below covers the
-    // PASS path.
+    // either, so startingHeightCheck also gates UNKNOWN here -- the
+    // dedicated 5d enrichment test below covers the PASS path.
     expect(res.body.verdicts.some((v: { rule: string }) => v.rule === "R104")).toBe(true);
   });
 
@@ -378,12 +377,11 @@ describe("POST /api/check", () => {
     // enrichment reaches the check correctly).
     //
     // Selected by `v.geometry` presence, NOT `v.rule === "R101"`: the
-    // pre-existing Phase-1 occurrenceCountCheck positionally cites whatever
-    // config.rules[0] currently is (now that rules/2026.json's R101 entry is
-    // VERIFIED, that check ALSO reports rule "R101" for an unrelated
-    // occurrence-count measurement -- see deferred-items.md). This is the
-    // exact ambiguity 03-02-PLAN.md's Task 3 anticipates by recommending
-    // `verdicts.find(v => v.geometry)` over a rule-string lookup.
+    // pre-existing Phase-1 rule-citation collision (a retired proof-of-
+    // plumbing check also cited "R101" positionally) was resolved by
+    // retiring the two proof-of-plumbing checks in 04-01 (D-01) --
+    // `v.geometry` selection is kept here as the still-correct, collision-
+    // proof idiom recommended by 03-02-PLAN.md's Task 3.
     const perimeterVerdict = res.body.verdicts.find((v: { geometry?: unknown }) => v.geometry);
     expect(perimeterVerdict).toBeDefined();
     expect(perimeterVerdict.rule).toBe("R101");

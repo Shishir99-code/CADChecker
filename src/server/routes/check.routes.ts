@@ -5,8 +5,6 @@ import { ReconnectRequiredError } from "../auth/refresh.ts";
 import { flattenAssembly, groupPartsByElement } from "../traversal/flatten-assembly.ts";
 import { loadSeasonConfig } from "../config/load-season.ts";
 import { CheckEngine } from "../checks/engine.ts";
-import { occurrenceCountCheck } from "../checks/occurrence-count.check.ts";
-import { frameTagPresenceCheck } from "../checks/frame-tag-presence.check.ts";
 import { materialAuditCheck } from "../checks/material-audit.check.ts";
 import { robotWeightCheck } from "../checks/robot-weight.check.ts";
 import { robotBumpersWeightCheck } from "../checks/robot-bumpers-weight.check.ts";
@@ -34,8 +32,6 @@ export interface CheckRouterOptions {
 
 function buildEngine(): CheckEngine {
   const engine = new CheckEngine();
-  engine.register(occurrenceCountCheck);
-  engine.register(frameTagPresenceCheck);
   engine.register(materialAuditCheck);
   engine.register(robotWeightCheck);
   engine.register(robotBumpersWeightCheck);

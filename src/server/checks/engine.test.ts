@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CheckEngine } from "./engine.ts";
-import { occurrenceCountCheck } from "./occurrence-count.check.ts";
-import { frameTagPresenceCheck } from "./frame-tag-presence.check.ts";
+import { CheckEngine, passesOperator, type CheckFn, type Verdict } from "./engine.ts";
 import type { Fact } from "../traversal/facts.ts";
 import type { SeasonConfig } from "../config/schema.ts";
 
@@ -19,10 +17,51 @@ const config: SeasonConfig = {
   ],
 };
 
+/**
+ * Two small inline trivial CheckFns standing in for real registered checks
+ * (Phase-1's two proof-of-plumbing checks were retired in 04-01, D-01) --
+ * these exercise the identical engine mechanics (register / runAll /
+ * identical-facts-reference / operator pass-fail) with zero dependency on
+ * any retired or real check module.
+ */
+const totalCountCheck: CheckFn = (facts: Fact[], config: SeasonConfig): Verdict => {
+  const entry = config.rules[0];
+  if (!entry) {
+    throw new Error("totalCountCheck requires at least one rule entry in the season config");
+  }
+  const measured = facts.length;
+  return {
+    rule: entry.rule,
+    title: entry.title,
+    limit: entry.limit,
+    unit: entry.unit,
+    status: passesOperator(entry, measured) ? "PASS" : "FAIL",
+    measuredCount: measured,
+    caveats: [],
+  };
+};
+
+const framePrefixCountCheck: CheckFn = (facts: Fact[], config: SeasonConfig): Verdict => {
+  const entry = config.rules[1];
+  if (!entry) {
+    throw new Error("framePrefixCountCheck requires at least two rule entries in the season config");
+  }
+  const measured = facts.filter((f) => f.name.startsWith("FRAME_")).length;
+  return {
+    rule: entry.rule,
+    title: entry.title,
+    limit: entry.limit,
+    unit: entry.unit,
+    status: passesOperator(entry, measured) ? "PASS" : "FAIL",
+    measuredCount: measured,
+    caveats: [],
+  };
+};
+
 function buildEngine(): CheckEngine {
   const engine = new CheckEngine();
-  engine.register(occurrenceCountCheck);
-  engine.register(frameTagPresenceCheck);
+  engine.register(totalCountCheck);
+  engine.register(framePrefixCountCheck);
   return engine;
 }
 
@@ -33,13 +72,13 @@ describe("CheckEngine", () => {
     expect(verdicts).toHaveLength(2);
   });
 
-  it("occurrence-count Verdict.measuredCount equals fact count", () => {
+  it("total-count Verdict.measuredCount equals fact count", () => {
     const engine = buildEngine();
-    const [occurrenceVerdict] = engine.runAll(facts, config);
-    expect(occurrenceVerdict?.measuredCount).toBe(facts.length);
+    const [totalVerdict] = engine.runAll(facts, config);
+    expect(totalVerdict?.measuredCount).toBe(facts.length);
   });
 
-  it("frame-tag Verdict.measuredCount equals the count of FRAME_-prefixed facts", () => {
+  it("frame-prefix-count Verdict.measuredCount equals the count of FRAME_-prefixed facts", () => {
     const engine = buildEngine();
     const [, frameVerdict] = engine.runAll(facts, config);
     expect(frameVerdict?.measuredCount).toBe(2);
@@ -50,11 +89,11 @@ describe("CheckEngine", () => {
     const receivedArrays: Fact[][] = [];
     engine.register((f, c) => {
       receivedArrays.push(f);
-      return occurrenceCountCheck(f, c);
+      return totalCountCheck(f, c);
     });
     engine.register((f, c) => {
       receivedArrays.push(f);
-      return frameTagPresenceCheck(f, c);
+      return framePrefixCountCheck(f, c);
     });
 
     engine.runAll(facts, config);
