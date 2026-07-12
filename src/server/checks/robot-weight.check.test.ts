@@ -58,6 +58,9 @@ describe("robotWeightCheck (R103)", () => {
     expect(verdict.measured).toBeUndefined();
     expect(verdict.affectedPartCount).toBe(1);
     expect(verdict.affectedParts).toEqual([{ name: "FRAME_rail", path: ["p1"] }]);
+    expect(typeof verdict.caveats[0]).toBe("string");
+    expect(verdict.caveats[0].length).toBeGreaterThan(0);
+    expect(verdict.caveats[0]).toContain("missing material or unresolved mass");
   });
 
   it("does NOT change status when a BUMPER_ part lacks material -- per-verdict isolation (D-09)", () => {
@@ -83,6 +86,7 @@ describe("robotWeightCheck (R103)", () => {
     expect(verdict.status).toBe("UNKNOWN");
     expect(verdict.measured).toBeUndefined();
     expect(verdict.affectedParts).toEqual([{ name: "FRAME_rail", path: ["p1"] }]);
+    expect(verdict.caveats[0]).toContain("missing material or unresolved mass");
   });
 
   it("emits missing-tag caveats when no BUMPER_/BATTERY_ part is present, and omits the battery caveat when one is (D-06)", () => {

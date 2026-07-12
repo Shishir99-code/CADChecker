@@ -58,6 +58,9 @@ describe("robotBumpersWeightCheck (R408)", () => {
     expect(verdict.status).toBe("UNKNOWN");
     expect(verdict.measured).toBeUndefined();
     expect(verdict.affectedParts).toEqual([{ name: "BUMPER_front", path: ["p2"] }]);
+    expect(typeof verdict.caveats[0]).toBe("string");
+    expect(verdict.caveats[0].length).toBeGreaterThan(0);
+    expect(verdict.caveats[0]).toContain("missing material or unresolved mass");
   });
 
   it("emits only the BATTERY_ caveat when battery is absent, never a BUMPER_ caveat (D-06)", () => {
