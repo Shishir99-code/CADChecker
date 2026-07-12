@@ -149,6 +149,11 @@ function stubGetAssemblyBoundingBoxes() {
   return vi.fn(async () => ({ lowX: -1, lowY: -1, lowZ: 0, highX: 1, highY: 1, highZ: 0.5 }));
 }
 
+/** Fake getDocument -- returns a display name for the disclosure header. */
+function stubGetDocument() {
+  return vi.fn(async () => ({ id: "doc-1", name: "Test Robot 2026" }));
+}
+
 function buildTestApp(fakeClient: Partial<OnshapeClient>, options: { withSession?: boolean } = {}): Express {
   const { withSession = true } = options;
   const app = express();
@@ -202,6 +207,7 @@ describe("POST /api/check", () => {
       getAssemblyDefinition,
       getPartStudioMassProperties,
       getPartsMetadata,
+      getDocument: stubGetDocument(),
     });
 
     const res = await request(app)
@@ -218,6 +224,10 @@ describe("POST /api/check", () => {
       documentId: "doc-1",
       workspaceId: "ws-1",
       elementId: ASSEMBLY_ELEMENT_ID,
+      documentName: "Test Robot 2026",
+      tabName: "Main Assembly",
+      configurationName: "Default",
+      checkedAt: expect.any(String),
     });
     for (const verdict of res.body.verdicts) {
       expect(verdict).toHaveProperty("rule");
@@ -255,6 +265,7 @@ describe("POST /api/check", () => {
       getAssemblyDefinition,
       getPartStudioMassProperties,
       getPartsMetadata,
+      getDocument: stubGetDocument(),
     });
 
     const res = await request(app)
@@ -325,6 +336,7 @@ describe("POST /api/check", () => {
       getPartStudioMassProperties,
       getPartsMetadata,
       getBoundingBoxes,
+      getDocument: stubGetDocument(),
     });
 
     const res = await request(app)
@@ -415,6 +427,7 @@ describe("POST /api/check", () => {
       getPartStudioMassProperties,
       getPartsMetadata,
       getBoundingBoxes,
+      getDocument: stubGetDocument(),
     });
 
     const res = await request(app)
@@ -493,6 +506,7 @@ describe("POST /api/check", () => {
       getPartStudioMassProperties,
       getPartsMetadata,
       getAssemblyBoundingBoxes,
+      getDocument: stubGetDocument(),
     });
 
     const res = await request(app)
