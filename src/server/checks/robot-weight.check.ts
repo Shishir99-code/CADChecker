@@ -51,7 +51,10 @@ export const robotWeightCheck: CheckFn = (facts: Fact[], config) => {
       status: "UNKNOWN",
       affectedPartCount: untrusted.length,
       affectedParts: untrusted.map((f) => ({ name: f.name, path: f.path })),
-      caveats,
+      caveats: [
+        `${untrusted.length} part(s) have missing material or unresolved mass — see affected parts`,
+        ...caveats,
+      ],
     };
   }
 
