@@ -14,6 +14,13 @@ import { transformPoint } from "../geometry/transform-point.ts";
 
 const CURRENT_SEASON = "2026";
 
+// No code path in this app resolves or applies a named Onshape
+// "Configuration" to the assembly being checked (RESEARCH Pattern 3) -- every
+// mass-properties/bounding-box call is made without a `configuration` query
+// param, so the app always measures Onshape's implicit default/as-modeled
+// state. This literal is disclosed as `configurationName` in the response.
+const DEFAULT_CONFIGURATION_NAME = "Default";
+
 const CheckRequestSchema = z.object({
   documentId: z.string().min(1),
   workspaceId: z.string().min(1),
@@ -79,6 +86,27 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
         return;
       }
       const elementId = assembly.id;
+
+      // (3b, NEW) Best-effort document display-name resolution for the
+      // "measured against" disclosure header (RSLT-03, D-02). Mirrors 5d's
+      // try/catch discipline exactly: ReconnectRequiredError and a 401
+      // OnshapeApiError propagate (a broken session must never be hidden
+      // behind a naming lookup); any other failure leaves documentName
+      // undefined and the panel falls back to the raw documentId -- a
+      // failed name lookup must never fail the whole check.
+      let documentName: string | undefined;
+      try {
+        const doc = await client.getDocument(documentId);
+        documentName = doc.name;
+      } catch (err) {
+        if (err instanceof ReconnectRequiredError) {
+          throw err;
+        }
+        if (err instanceof OnshapeApiError && err.status === 401) {
+          throw err;
+        }
+        // Any other error -- swallow it and leave documentName undefined.
+      }
 
       // (4) Fetch the live assembly definition for the re-derived element.
       const definition = await client.getAssemblyDefinition(documentId, "w", workspaceId, elementId);
@@ -334,9 +362,21 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
       const engine = buildEngine();
       const verdicts = engine.runAll(enrichedFacts, config);
 
-      // (8) Structured, rule-cited report.
+      // (8) Structured, rule-cited report. All four disclosure fields are
+      // assembled in this SAME object literal as verdicts -- no `await`
+      // appears between field assembly and res.json(), so a re-check swaps
+      // header + verdicts together atomically (SC4/D-03; no old-geometry/
+      // new-timestamp mismatch is structurally possible).
       res.status(200).json({
-        measuredContext: { documentId, workspaceId, elementId },
+        measuredContext: {
+          documentId,
+          workspaceId,
+          elementId,
+          documentName, // best-effort, may be undefined (3b)
+          tabName: assembly.name, // FREE -- already resolved above
+          configurationName: DEFAULT_CONFIGURATION_NAME,
+          checkedAt: new Date().toISOString(),
+        },
         verdicts,
       });
     } catch (err) {

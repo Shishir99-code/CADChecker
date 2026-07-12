@@ -10,6 +10,7 @@ export type AssemblyDefinitionResponse = components["schemas"]["BTAssemblyDefini
 export type MassPropertiesBulkResponse = components["schemas"]["BTMassPropertiesBulkInfo"];
 export type PartMetadata = components["schemas"]["BTPartMetadataInfo"];
 export type BoundingBoxResponse = components["schemas"]["BTBoundingBoxInfo"];
+export type DocumentInfo = components["schemas"]["BTDocumentInfo"];
 
 /** Thrown when an Onshape API call itself returns a non-2xx status (surfaced
  * to callWithRefresh via a `status` field so it can recognize 401s). */
@@ -116,6 +117,7 @@ export interface OnshapeClient {
     wvmid: string,
     elementId: string,
   ): Promise<BoundingBoxResponse>;
+  getDocument(documentId: string): Promise<DocumentInfo>;
 }
 
 export function createOnshapeClient(session: RefreshableSession, env: OnshapeClientEnv): OnshapeClient {
@@ -293,6 +295,24 @@ export function createOnshapeClient(session: RefreshableSession, env: OnshapeCli
             throw new OnshapeApiError(res.status, "Failed to fetch assembly bounding box");
           }
           return (await res.json()) as BoundingBoxResponse;
+        },
+        refreshFn,
+      );
+    },
+
+    async getDocument(documentId) {
+      return callWithRefresh(
+        session,
+        async () => {
+          const client = buildFetchClient(session);
+          const result = await client.GET("/api/documents/{did}", {
+            params: { path: { did: documentId } },
+          });
+          if (!result.data) {
+            const status = (result as { response: Response }).response.status;
+            throw new OnshapeApiError(status, "Failed to fetch document");
+          }
+          return result.data;
         },
         refreshFn,
       );
