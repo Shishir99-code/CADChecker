@@ -2,7 +2,6 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { startHandshake, type OwnTabIdentity } from "./postMessage/handshake.ts";
 import { runCheck, isReconnectSignal, AuthRequiredError, type CheckReport } from "./api.ts";
-import { PlumbingBanner } from "./components/PlumbingBanner.tsx";
 import { ReportTable } from "./components/ReportTable.tsx";
 import { ReconnectState } from "./components/ReconnectState.tsx";
 import { HullRender } from "./components/HullRender.tsx";
@@ -84,14 +83,14 @@ function App() {
 
         {checkState.status === "report" && (
           <>
-            <PlumbingBanner />
             <ReportTable verdicts={checkState.report.verdicts} />
             {(() => {
-              // Selected by `geometry` presence, NOT `rule === "R101"` --
-              // occurrenceCountCheck (Phase 1 proof-of-plumbing) also
-              // positionally cites "R101" now that rules/2026.json is
-              // VERIFIED (deferred-items.md), so a rule-string lookup here
-              // would risk grabbing the wrong verdict. The panel performs
+              // Selected by `geometry` presence, NOT `rule === "R101"` -- the
+              // pre-existing R101/R103 rule-citation collision (a retired
+              // Phase-1 proof-of-plumbing check also positionally cited
+              // "R101") was resolved by retiring the two proof-of-plumbing
+              // checks in 04-01 (D-01); `geometry` selection is kept as the
+              // still-correct, collision-proof idiom. The panel performs
               // zero geometry recomputation -- it only renders whatever hull
               // vertex array the backend already computed (D-07).
               const perimeterVerdict = checkState.report.verdicts.find((v) => v.geometry);

@@ -12,10 +12,13 @@ const STATUS_COLORS: Record<CheckReportVerdict["status"], { color: string; backg
 
 /** Renders the tri-state Measured cell content (D-10: never a partial/floor
  * number when UNKNOWN; a dual lb/kg figure for weight checks; a plain count
- * for non-weight checks; empty otherwise). */
+ * for non-weight checks; empty otherwise). The UNKNOWN branch shows only the
+ * non-misleading literal "NOT YET CHECKABLE" -- the actual plain-language
+ * reason is surfaced once, via renderReason()/the caveats-row block below,
+ * never duplicated here. */
 function renderMeasured(verdict: CheckReportVerdict): string {
   if (verdict.status === "UNKNOWN") {
-    return `UNKNOWN — ${verdict.affectedPartCount ?? 0} parts missing material`;
+    return "NOT YET CHECKABLE";
   }
   if (verdict.measured) {
     return `${verdict.measured.lb.toFixed(1)} lb (${verdict.measured.kg.toFixed(1)} kg)`;
@@ -24,6 +27,26 @@ function renderMeasured(verdict: CheckReportVerdict): string {
     return `${verdict.measuredCount} ${verdict.unit}`;
   }
   return "";
+}
+
+/** Renders the season limit + unit for EVERY row (RSLT-01/SC1) -- a clean
+ * em-dash placeholder when `verdict.limit` is not a finite number, so the
+ * literal string "undefined" never renders. */
+function renderLimit(verdict: CheckReportVerdict): string {
+  if (typeof verdict.limit === "number" && Number.isFinite(verdict.limit)) {
+    return `${verdict.limit} ${verdict.unit}`;
+  }
+  return "—";
+}
+
+/** Renders each UNKNOWN verdict's own plain-language reason (D-04): the
+ * check's own caveats[0] when present, else a defensive fallback so a row
+ * never silently shows nothing. */
+function renderReason(verdict: CheckReportVerdict): string {
+  if (verdict.caveats.length > 0) {
+    return verdict.caveats[0]!;
+  }
+  return `not yet checkable${verdict.affectedPartCount ? ` — ${verdict.affectedPartCount} part(s) affected` : ""}`;
 }
 
 /**
@@ -43,6 +66,7 @@ export function ReportTable({ verdicts }: ReportTableProps) {
         <tr>
           <th style={{ textAlign: "left" }}>Rule</th>
           <th style={{ textAlign: "left" }}>Title</th>
+          <th style={{ textAlign: "left" }}>Limit</th>
           <th style={{ textAlign: "left" }}>Measured</th>
           <th style={{ textAlign: "left" }}>Verdict</th>
         </tr>
@@ -54,6 +78,7 @@ export function ReportTable({ verdicts }: ReportTableProps) {
             <tr key={verdict.rule}>
               <td>{verdict.rule}</td>
               <td>{verdict.title}</td>
+              <td>{renderLimit(verdict)}</td>
               <td>{renderMeasured(verdict)}</td>
               <td>
                 <span
@@ -65,7 +90,7 @@ export function ReportTable({ verdicts }: ReportTableProps) {
                     fontWeight: 600,
                   }}
                 >
-                  {verdict.status}
+                  {verdict.status === "UNKNOWN" ? "NOT YET CHECKABLE" : verdict.status}
                 </span>
               </td>
             </tr>
@@ -80,7 +105,7 @@ export function ReportTable({ verdicts }: ReportTableProps) {
           return (
             <tr key={`${verdict.rule}-notes`}>
               <td />
-              <td colSpan={3}>
+              <td colSpan={4}>
                 {hasOffendingParts && (
                   <div>
                     <strong>Missing material:</strong>
@@ -93,8 +118,8 @@ export function ReportTable({ verdicts }: ReportTableProps) {
                 )}
                 {hasCaveats && (
                   <div>
-                    {verdict.caveats.map((caveat) => (
-                      <div key={caveat}>{caveat}</div>
+                    {verdict.caveats.map((caveat, i) => (
+                      <div key={caveat}>{i === 0 ? renderReason(verdict) : caveat}</div>
                     ))}
                   </div>
                 )}
