@@ -39,7 +39,7 @@ Requirements for the initial release — the smallest end-to-end useful slice. E
 
 - [x] **RSLT-01**: The panel lists each check as pass / fail, citing the rule number + title, the limit, and the actual measured value
 - [x] **RSLT-02**: Checks that cannot run (e.g. no `FRAME_`-tagged parts, missing material) show an explicit "not yet checkable" state — never a silent pass
-- [ ] **RSLT-03**: Every verdict shows the document / tab / configuration / timestamp it was measured against
+- [x] **RSLT-03**: Every verdict shows the document / tab / configuration / timestamp it was measured against
 
 ## v2 Requirements
 
@@ -101,7 +101,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | GEOM-03 | Phase 3 | Complete |
 | RSLT-01 | Phase 4 | Complete |
 | RSLT-02 | Phase 4 | Complete |
-| RSLT-03 | Phase 4 | Pending |
+| RSLT-03 | Phase 4 | Complete |
 
 **Coverage:**
 
