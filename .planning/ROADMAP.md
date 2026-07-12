@@ -126,7 +126,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — Honest per-check states: retire the 2 Phase-1 plumbing checks (resolves R101/R103 collision), fix both weight checks' UNKNOWN reason, render "NOT YET CHECKABLE" rows from caveats[0] (RSLT-01, RSLT-02)
+- [x] 04-01-PLAN.md — Honest per-check states: retire the 2 Phase-1 plumbing checks (resolves R101/R103 collision), fix both weight checks' UNKNOWN reason, render "NOT YET CHECKABLE" rows from caveats[0] (RSLT-01, RSLT-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -142,4 +142,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
 | 2. Trustworthy Weight | 3/3 | Complete    | 2026-07-09 |
 | 3. Frame Perimeter & Height | 4/4 | Complete   | 2026-07-10 |
-| 4. Trust-Bar Results Panel | 0/2 | Not started | - |
+| 4. Trust-Bar Results Panel | 1/2 | In Progress|  |
