@@ -121,12 +121,16 @@ Plans:
   3. Every verdict on the panel discloses the document, tab/element, configuration, and timestamp it was measured against, so a team can tell at a glance whether a result is stale
   4. Re-running "check now" after making a CAD edit updates all four disclosure fields (document/tab/config/timestamp) together, so no verdict can display a mismatched combination of old geometry and new timestamp (or vice versa)
 
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
+**Wave 1**
 
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Honest per-check states: retire the 2 Phase-1 plumbing checks (resolves R101/R103 collision), fix both weight checks' UNKNOWN reason, render "NOT YET CHECKABLE" rows from caveats[0] (RSLT-01, RSLT-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — Measured-against disclosure header: new getDocument client call + grown atomic measuredContext (document/tab/config/timestamp) + DisclosureHeader panel component (RSLT-03)
 
 ## Progress
 
