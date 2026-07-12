@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Connected Foundation & First Check** - OAuth-connected panel runs a manual check-now and returns a structured, rule-cited report using a shared occurrence-traversal utility and versioned config (completed 2026-07-02)
 - [x] **Phase 2: Trustworthy Weight** - Material-default audit gates two separately-filtered weight verdicts (robot-only R103, robot+bumpers R408) (completed 2026-07-09)
 - [x] **Phase 3: Frame Perimeter & Height** - Robot/frame perimeter (2D convex hull of tagged frame parts, rendered visually) and starting-configuration height checks (REOPENED 2026-07-10 — verification gaps_found: GEOM-01 perimeter join broken (CR-01), GEOM-02 partial; GEOM-03 height verified; see 03-VERIFICATION.md, gap closure pending) (completed 2026-07-10)
-- [ ] **Phase 4: Trust-Bar Results Panel** - Every verdict cites its rule, discloses what was measured, and never silently passes when data is missing
+- [x] **Phase 4: Trust-Bar Results Panel** - Every verdict cites its rule, discloses what was measured, and never silently passes when data is missing (completed 2026-07-12)
 
 ## Phase Details
 
@@ -130,7 +130,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-02-PLAN.md — Measured-against disclosure header: new getDocument client call + grown atomic measuredContext (document/tab/config/timestamp) + DisclosureHeader panel component (RSLT-03)
+- [x] 04-02-PLAN.md — Measured-against disclosure header: new getDocument client call + grown atomic measuredContext (document/tab/config/timestamp) + DisclosureHeader panel component (RSLT-03)
 
 ## Progress
 
@@ -142,4 +142,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Connected Foundation & First Check | 3/3 | Complete    | 2026-07-02 |
 | 2. Trustworthy Weight | 3/3 | Complete    | 2026-07-09 |
 | 3. Frame Perimeter & Height | 4/4 | Complete   | 2026-07-10 |
-| 4. Trust-Bar Results Panel | 1/2 | In Progress|  |
+| 4. Trust-Bar Results Panel | 2/2 | Complete   | 2026-07-12 |
