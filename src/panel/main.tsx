@@ -5,6 +5,7 @@ import { runCheck, isReconnectSignal, AuthRequiredError, type CheckReport } from
 import { ReportTable } from "./components/ReportTable.tsx";
 import { ReconnectState } from "./components/ReconnectState.tsx";
 import { HullRender } from "./components/HullRender.tsx";
+import { DisclosureHeader } from "./components/DisclosureHeader.tsx";
 
 type CheckUiState =
   | { status: "idle" }
@@ -83,6 +84,7 @@ function App() {
 
         {checkState.status === "report" && (
           <>
+            <DisclosureHeader context={checkState.report.measuredContext} />
             <ReportTable verdicts={checkState.report.verdicts} />
             {(() => {
               // Selected by `geometry` presence, NOT `rule === "R101"` -- the

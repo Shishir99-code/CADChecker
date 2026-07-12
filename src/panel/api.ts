@@ -48,10 +48,25 @@ export interface CheckReportVerdict {
   };
 }
 
+/**
+ * Mirrors the server's measuredContext (check.routes.ts) field-for-field --
+ * these four disclosure fields are never recomputed client-side, only
+ * rendered as-is (DisclosureHeader.tsx). documentId/workspaceId/elementId
+ * are kept for back-compat with other features.
+ */
 export interface CheckReportContext {
   documentId: string;
   workspaceId: string;
   elementId: string;
+  /** Best-effort; undefined if the server-side document-name lookup failed. */
+  documentName?: string;
+  /** Free from the server's getElementsInDocument call; undefined only if
+   * Onshape omits it. */
+  tabName?: string;
+  /** Always "Default" in v1 -- no named-configuration selection exists yet. */
+  configurationName: string;
+  /** Server-stamped ISO 8601 timestamp, from the same response as verdicts. */
+  checkedAt: string;
 }
 
 export interface CheckReport {
