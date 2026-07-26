@@ -1,12 +1,4 @@
 {
   "version": 2,
-  "regions": ["iad1"],
-  "services": {
-    "app": {
-      "root": ".",
-      "buildCommand": "npm run build",
-      "installCommand": "npm install",
-      "outputDirectory": "dist"
-    }
-  }
+  "regions": ["iad1"]
 }
