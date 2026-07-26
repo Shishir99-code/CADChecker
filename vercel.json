@@ -1,6 +1,12 @@
 {
   "version": 2,
   "regions": ["iad1"],
-  "buildCommand": "npm run build",
-  "installCommand": "npm install"
+  "services": {
+    "backend": {
+      "root": ".",
+      "buildCommand": "tsc -p tsconfig.server.json && vite build",
+      "installCommand": "npm install",
+      "entrypoint": "server.ts"
+    }
+  }
 }
