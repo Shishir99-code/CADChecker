@@ -1,11 +1,12 @@
 {
   "version": 2,
   "regions": ["iad1"],
-  "services": {
-    "cadchecker": {
-      "root": ".",
-      "buildCommand": "npm run build",
-      "outputDirectory": "dist"
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "vercel/api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 60
     }
   }
 }
