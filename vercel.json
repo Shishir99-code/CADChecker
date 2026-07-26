@@ -3,8 +3,8 @@
   "regions": ["iad1"],
   "services": {
     "api": {
-      "root": "vercel/api",
-      "runtime": "node"
+      "root": ".",
+      "entrypoint": "vercel/api/index.ts"
     }
   }
 }
