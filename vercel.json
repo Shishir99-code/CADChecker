@@ -2,9 +2,12 @@
   "version": 2,
   "regions": ["iad1"],
   "services": {
-    "api": {
+    "web": {
       "root": ".",
-      "entrypoint": "vercel/api/index.ts"
+      "buildCommand": "npm run build",
+      "installCommand": "npm install",
+      "outputDirectory": "dist/panel",
+      "public": "dist/panel"
     }
   }
 }
