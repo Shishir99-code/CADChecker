@@ -1,22 +1,6 @@
 {
   "version": 2,
-  "regions": [
-    "iad1"
-  ],
-  "services": {
-    "cadchecker": {
-      "root": ".",
-      "framework": "vite",
-      "buildCommand": "npm install && npm run build"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": {
-        "type": "service",
-        "service": "cadchecker"
-      }
-    }
-  ]
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/panel",
+  "regions": ["iad1"]
 }
