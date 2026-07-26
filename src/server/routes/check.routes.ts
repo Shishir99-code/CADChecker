@@ -11,6 +11,7 @@ import { robotBumpersWeightCheck } from "../checks/robot-bumpers-weight.check.ts
 import { framePerimeterCheck } from "../checks/frame-perimeter.check.ts";
 import { startingHeightCheck } from "../checks/starting-height.check.ts";
 import { transformPoint } from "../geometry/transform-point.ts";
+import { storeCheck } from "../db/client.ts";
 
 const CURRENT_SEASON = "2026";
 
@@ -367,6 +368,34 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
       // appears between field assembly and res.json(), so a re-check swaps
       // header + verdicts together atomically (SC4/D-03; no old-geometry/
       // new-timestamp mismatch is structurally possible).
+
+      // Persist check result to database (best-effort; don't fail the response on DB error)
+      const passed = verdicts.every((v) => v.status === "PASS");
+      const violations = verdicts.filter((v) => v.status !== "PASS");
+      try {
+        await storeCheck({
+          onshape_user_id: req.user?.id || "unknown",
+          onshape_team_id: req.user?.team_id,
+          document_id: documentId,
+          workspace_id: workspaceId,
+          element_id: elementId,
+          passed,
+          violations: violations.map((v) => ({
+            rule: v.rule,
+            status: v.status,
+            message: v.message,
+          })),
+          check_metadata: {
+            documentName,
+            tabName: assembly.name,
+            configurationName: DEFAULT_CONFIGURATION_NAME,
+          },
+        });
+      } catch (dbError) {
+        // Log but don't fail the check response on DB error
+        console.error("Failed to persist check to database:", dbError);
+      }
+
       res.status(200).json({
         measuredContext: {
           documentId,
