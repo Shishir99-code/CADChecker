@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "regions": ["iad1"],
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/panel"
+  "installCommand": "npm install",
+  "regions": ["iad1"]
 }
