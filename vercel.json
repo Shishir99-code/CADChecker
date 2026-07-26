@@ -1,13 +1,22 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "other",
-  "regions": ["iad1"],
-  "env": {
-    "ONSHAPE_CLIENT_ID": "@onshape_client_id",
-    "ONSHAPE_CLIENT_SECRET": "@onshape_client_secret",
-    "ONSHAPE_REDIRECT_URI": "@onshape_redirect_uri",
-    "SESSION_SECRET": "@session_secret"
-  }
+  "version": 2,
+  "regions": [
+    "iad1"
+  ],
+  "services": {
+    "cadchecker": {
+      "root": ".",
+      "framework": "vite",
+      "buildCommand": "npm install && npm run build"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "cadchecker"
+      }
+    }
+  ]
 }

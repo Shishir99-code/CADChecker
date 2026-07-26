@@ -26,9 +26,9 @@ export default defineConfig({
     // breaking the module graph and blanking the panel. "/api/" only matches
     // real backend routes like /api/check. Same reasoning for /auth/.
     proxy: {
-      "/auth/": "http://localhost:3000",
-      "/api/": "http://localhost:3000",
-      "/healthz": "http://localhost:3000",
+      "/auth/": "http://localhost:3001",
+      "/api/": "http://localhost:3001",
+      "/healthz": "http://localhost:3001",
     },
     // Vite blocks requests whose Host header is not explicitly allowed. The
     // ngrok tunnel forwards its own hostname, so it must be permitted here.

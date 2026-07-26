@@ -375,7 +375,7 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
       try {
         await storeCheck({
           onshape_user_id: req.user?.id || "unknown",
-          onshape_team_id: req.user?.team_id,
+          onshape_team_id: undefined,
           document_id: documentId,
           workspace_id: workspaceId,
           element_id: elementId,
@@ -383,7 +383,7 @@ export function createCheckRouter(options: CheckRouterOptions): Router {
           violations: violations.map((v) => ({
             rule: v.rule,
             status: v.status,
-            message: v.message,
+            title: v.title,
           })),
           check_metadata: {
             documentName,

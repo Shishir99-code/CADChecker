@@ -15,7 +15,7 @@ export interface StoredCheck {
 
 export interface CheckToStore {
   onshape_user_id: string;
-  onshape_team_id: string | null;
+  onshape_team_id?: string | null;
   document_id: string;
   workspace_id: string;
   element_id: string;
@@ -51,7 +51,9 @@ export async function storeCheck(check: CheckToStore): Promise<StoredCheck> {
     RETURNING *
   `;
 
-  return result.rows[0];
+  const row = result.rows[0];
+  if (!row) throw new Error("Failed to insert check into database");
+  return row;
 }
 
 /**
