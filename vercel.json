@@ -2,7 +2,8 @@
   "version": 2,
   "regions": ["iad1"],
   "buildCommand": "npm run build",
-  "installCommand": "npm install && npm install @vercel/node",
-  "outputDirectory": "dist",
-  "public": "dist/panel"
+  "installCommand": "npm install",
+  "outputDirectory": ".",
+  "public": "dist/panel",
+  "services": {}
 }
