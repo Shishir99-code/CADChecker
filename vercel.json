@@ -1,17 +1,6 @@
 {
   "version": 2,
   "regions": ["iad1"],
-  "services": {
-    "frontend": {
-      "root": ".",
-      "buildCommand": "npm run build",
-      "outputDirectory": "dist/panel"
-    }
-  },
-  "functions": {
-    "vercel/api/**/*.ts": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  }
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/panel"
 }
