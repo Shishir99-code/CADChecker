@@ -1,7 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/panel",
-  "installCommand": "npm install",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "services": {
+    "cadchecker": {
+      "root": ".",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
+    }
+  }
 }
