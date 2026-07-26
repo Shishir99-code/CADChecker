@@ -1,11 +1,4 @@
 {
   "version": 2,
-  "regions": ["iad1"],
-  "services": {
-    "web": {
-      "root": ".",
-      "buildCommand": "npm run build",
-      "outputDirectory": "dist/panel"
-    }
-  }
+  "regions": ["iad1"]
 }
